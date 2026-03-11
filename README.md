@@ -2,7 +2,7 @@
 
 ![Sopaper Evidence cover](docs/assets/cover.png)
 
-Current version: `v0.3`
+Current version: `v0.4.1`
 
 Sopaper Evidence is an evidence-first research skill for paper writing. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before supporting any abstract, related work section, experiment plan, or draft outline.
 
@@ -135,6 +135,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
+- [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
 
 ## Example workflow
 
@@ -150,6 +151,7 @@ See the OpenClaw example set:
 - [openclaw-claims.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claims.md)
 - [openclaw-claim-map-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map-draft.md)
 - [openclaw-gap-report-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report-draft.md)
+- [openclaw-pipeline-output.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-pipeline-output.md)
 - [openclaw-paper-outline.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-paper-outline.md)
 
 These examples show the intended quality bar:
@@ -194,6 +196,15 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 3. triage blocker / major / minor evidence gaps
 
 See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
+
+If you want one command instead of three, run:
+
+```bash
+python3 scripts/run_evidence_pipeline.py \
+  --sources sopaper-evidence/examples/openclaw-source-list.md \
+  --claims sopaper-evidence/examples/openclaw-claims.md \
+  --output-dir output/openclaw-pipeline
+```
 
 Example:
 
@@ -251,6 +262,8 @@ Use these files when publishing or presenting the project:
 - [repo-settings.md](/Users/xu/Desktop/Sopaper/docs/repo-settings.md)
 - [marketplace-publish-checklist.md](/Users/xu/Desktop/Sopaper/docs/marketplace-publish-checklist.md)
 - [release-v0.2.0.md](/Users/xu/Desktop/Sopaper/docs/release-v0.2.0.md)
+- [release-v0.4.0.md](/Users/xu/Desktop/Sopaper/docs/release-v0.4.0.md)
+- [release-v0.4.1.md](/Users/xu/Desktop/Sopaper/docs/release-v0.4.1.md)
 
 ## Publishing guidance
 

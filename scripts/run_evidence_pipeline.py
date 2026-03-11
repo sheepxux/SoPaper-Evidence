@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run the Sopaper Evidence helper pipeline: build evidence ledger, bootstrap claim map, "
+            "and generate an experiment gap report."
+        )
+    )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        required=True,
+        help="Source markdown/text files used to build the evidence ledger.",
+    )
+    parser.add_argument(
+        "--claims",
+        required=True,
+        help="Markdown file containing candidate claims.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="output/evidence-pipeline",
+        help="Directory for generated outputs. Default: output/evidence-pipeline",
+    )
+    parser.add_argument(
+        "--prefix",
+        default="draft",
+        help="Filename prefix for generated files. Default: draft",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    root = Path(__file__).resolve().parent.parent
+    sources = [Path(value).expanduser().resolve() for value in args.sources]
+    claims = Path(args.claims).expanduser().resolve()
+    output_dir = Path(args.output_dir).expanduser().resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    missing = [str(path) for path in sources + [claims] if not path.exists()]
+    if missing:
+        for item in missing:
+            print(f"Missing input: {item}", file=sys.stderr)
+        return 1
+
+    ledger_path = output_dir / f"{args.prefix}-ledger.md"
+    claim_map_path = output_dir / f"{args.prefix}-claim-map.md"
+    gap_report_path = output_dir / f"{args.prefix}-gap-report.md"
+
+    run_python(
+        root / "scripts" / "build_evidence_ledger.py",
+        [str(path) for path in sources] + ["-o", str(ledger_path)],
+    )
+    run_python(
+        root / "scripts" / "bootstrap_claim_map.py",
+        [str(claims), str(ledger_path), "-o", str(claim_map_path)],
+    )
+    run_python(
+        root / "scripts" / "triage_evidence_gaps.py",
+        [str(claims), str(ledger_path), "-o", str(gap_report_path)],
+    )
+
+    print("Pipeline complete.")
+    print(f"ledger: {ledger_path}")
+    print(f"claim_map: {claim_map_path}")
+    print(f"gap_report: {gap_report_path}")
+    return 0
+
+
+def run_python(script: Path, arguments: list[str]) -> None:
+    subprocess.run(
+        [sys.executable, str(script), *arguments],
+        check=True,
+    )
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
