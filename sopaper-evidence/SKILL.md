@@ -106,6 +106,7 @@ Use [assets/claim-evidence-map-template.md](assets/claim-evidence-map-template.m
 Use [assets/related-work-matrix-template.md](assets/related-work-matrix-template.md) when comparing papers, baselines, and benchmark coverage.
 Use [assets/experiment-gap-report-template.md](assets/experiment-gap-report-template.md) when the task requires prioritizing missing experiments before drafting.
 Use `scripts/build_evidence_ledger.py` when the user already has markdown notes or source lists and needs a first-pass evidence ledger.
+Use `scripts/bootstrap_claim_map.py` when the user already has a claims list and a ledger draft and needs a first-pass claim map.
 
 ### 6. Support writing
 
@@ -140,6 +141,8 @@ See the example set in:
 - [examples/openclaw-gap-report.md](examples/openclaw-gap-report.md)
 - [examples/openclaw-source-list.md](examples/openclaw-source-list.md)
 - [examples/openclaw-ledger-draft.md](examples/openclaw-ledger-draft.md)
+- [examples/openclaw-claims.md](examples/openclaw-claims.md)
+- [examples/openclaw-claim-map-draft.md](examples/openclaw-claim-map-draft.md)
 - [examples/openclaw-paper-outline.md](examples/openclaw-paper-outline.md)
 
 ## Writing constraints

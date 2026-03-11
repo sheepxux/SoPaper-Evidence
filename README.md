@@ -33,6 +33,7 @@ Sopaper Evidence is built around a stricter workflow:
 - an evidence-first skill with clear hard rules
 - structured references and templates
 - lightweight automation for evidence ledger drafting
+- lightweight automation for claim map bootstrapping
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging
 - a repository that can act as the public source of truth
@@ -131,6 +132,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [paper-outline-from-evidence-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/paper-outline-from-evidence-template.md): conservative outline template that starts from verified evidence
 - [experiment-gap-report-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/experiment-gap-report-template.md): template for triaging missing experiments and blocked claims
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
+- [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 
 ## Example workflow
 
@@ -143,6 +145,8 @@ See the OpenClaw example set:
 - [openclaw-gap-report.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report.md)
 - [openclaw-source-list.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-source-list.md)
 - [openclaw-ledger-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-ledger-draft.md)
+- [openclaw-claims.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claims.md)
+- [openclaw-claim-map-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map-draft.md)
 - [openclaw-paper-outline.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-paper-outline.md)
 
 These examples show the intended quality bar:
