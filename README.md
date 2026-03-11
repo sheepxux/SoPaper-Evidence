@@ -201,6 +201,9 @@ Use these files when publishing or presenting the project:
 
 - [marketplace-listing.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/marketplace-listing.md)
 - [github-launch.md](/Users/xu/Desktop/Sopaper/docs/github-launch.md)
+- [marketplace-launch.md](/Users/xu/Desktop/Sopaper/docs/marketplace-launch.md)
+- [repo-settings.md](/Users/xu/Desktop/Sopaper/docs/repo-settings.md)
+- [marketplace-publish-checklist.md](/Users/xu/Desktop/Sopaper/docs/marketplace-publish-checklist.md)
 - [release-v0.2.0.md](/Users/xu/Desktop/Sopaper/docs/release-v0.2.0.md)
 
 ## Publishing guidance
