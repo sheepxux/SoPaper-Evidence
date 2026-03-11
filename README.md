@@ -32,6 +32,7 @@ Sopaper Evidence is built around a stricter workflow:
 
 - an evidence-first skill with clear hard rules
 - structured references and templates
+- lightweight automation for evidence ledger drafting
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging
 - a repository that can act as the public source of truth
@@ -106,6 +107,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 .
 ├── README.md
 ├── LICENSE
+├── scripts/
 └── sopaper-evidence/
     ├── SKILL.md
     ├── agents/openai.yaml
@@ -128,6 +130,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [related-work-matrix-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/related-work-matrix-template.md): structured comparison template for related work
 - [paper-outline-from-evidence-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/paper-outline-from-evidence-template.md): conservative outline template that starts from verified evidence
 - [experiment-gap-report-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/experiment-gap-report-template.md): template for triaging missing experiments and blocked claims
+- [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
 
 ## Example workflow
 
@@ -138,6 +141,8 @@ See the OpenClaw example set:
 - [openclaw-evidence-brief.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-evidence-brief.md)
 - [openclaw-claim-map.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map.md)
 - [openclaw-gap-report.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report.md)
+- [openclaw-source-list.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-source-list.md)
+- [openclaw-ledger-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-ledger-draft.md)
 - [openclaw-paper-outline.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-paper-outline.md)
 
 These examples show the intended quality bar:
@@ -243,9 +248,10 @@ The correct behavior is:
 
 ### v0.4
 
-- lightweight helper scripts for evidence table generation
+- evidence ledger generator
+- claim map bootstrap
+- gap triage helper
 - more reusable templates for rebuttal and reviewer-safe summaries
-- better packaging for installation and discovery
 
 ## Suggested GitHub metadata
 
