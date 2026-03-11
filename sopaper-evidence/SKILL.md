@@ -7,7 +7,7 @@ description: Evidence-first research workflow for paper writing. Use when the ta
 
 Sopaper Evidence is an evidence-first research skill. Its job is to build a reliable evidence pack before supporting any paper outline, abstract, related work summary, experiment plan, or draft section.
 
-Version: `v0.3`
+Version: `v0.6-dev`
 
 ## Use this skill when
 
@@ -35,6 +35,7 @@ Use the highest-quality source available for each claim.
 3. Secondary summaries: blogs, news posts, third-party explainers
 
 Read [references/source-priority.md](references/source-priority.md) when source quality or conflicts matter.
+Read [references/input-schemas.md](references/input-schemas.md) when stronger input structure is needed before running the workflow.
 
 ## Core workflow
 
@@ -108,6 +109,7 @@ Use [assets/experiment-gap-report-template.md](assets/experiment-gap-report-temp
 Use `scripts/build_evidence_ledger.py` when the user already has markdown notes or source lists and needs a first-pass evidence ledger.
 Use `scripts/bootstrap_claim_map.py` when the user already has a claims list and a ledger draft and needs a first-pass claim map.
 Use `scripts/triage_evidence_gaps.py` when the user needs a first-pass blocker/major/minor gap report from the current claims and evidence ledger.
+Use `scripts/validate_input_bundle.py` when the user has partially structured inputs and needs a quick schema check before running the pipeline.
 
 ### 6. Support writing
 
@@ -140,9 +142,11 @@ See the example set in:
 - [examples/openclaw-evidence-brief.md](examples/openclaw-evidence-brief.md)
 - [examples/openclaw-claim-map.md](examples/openclaw-claim-map.md)
 - [examples/openclaw-gap-report.md](examples/openclaw-gap-report.md)
+- [examples/openclaw-source-note.md](examples/openclaw-source-note.md)
 - [examples/openclaw-source-list.md](examples/openclaw-source-list.md)
 - [examples/openclaw-ledger-draft.md](examples/openclaw-ledger-draft.md)
 - [examples/openclaw-claims.md](examples/openclaw-claims.md)
+- [examples/openclaw-claims-structured.md](examples/openclaw-claims-structured.md)
 - [examples/openclaw-claim-map-draft.md](examples/openclaw-claim-map-draft.md)
 - [examples/openclaw-gap-report-draft.md](examples/openclaw-gap-report-draft.md)
 - [examples/openclaw-paper-outline.md](examples/openclaw-paper-outline.md)

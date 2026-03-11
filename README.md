@@ -2,7 +2,7 @@
 
 ![Sopaper Evidence cover](docs/assets/cover.png)
 
-Current version: `v0.4.1`
+Current version: `v0.6-dev`
 
 Sopaper Evidence is an evidence-first research skill for paper writing. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before supporting any abstract, related work section, experiment plan, or draft outline.
 
@@ -31,6 +31,7 @@ Sopaper Evidence is built around a stricter workflow:
 ## What you get
 
 - an evidence-first skill with clear hard rules
+- stronger input schemas for claims, source notes, and result artifacts
 - structured references and templates
 - lightweight automation for evidence ledger drafting
 - lightweight automation for claim map bootstrapping
@@ -124,6 +125,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [evidence-schema.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/evidence-schema.md): how evidence is structured
 - [claim-audit-rules.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/claim-audit-rules.md): checks before any writing support
 - [source-priority.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/source-priority.md): source quality policy
+- [input-schemas.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/input-schemas.md): recommended structured inputs for source notes, claims, and result artifacts
 - [prior-work-search-playbook.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/prior-work-search-playbook.md): how to search prior work without drifting into weak evidence
 - [openclaw-evidence-playbook.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/openclaw-evidence-playbook.md): OpenClaw-specific evidence workflow for robotics and embodied systems papers
 - [benchmark-baseline-checklist.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/benchmark-baseline-checklist.md): how to validate evaluation fit and baseline quality
@@ -132,10 +134,14 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [related-work-matrix-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/related-work-matrix-template.md): structured comparison template for related work
 - [paper-outline-from-evidence-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/paper-outline-from-evidence-template.md): conservative outline template that starts from verified evidence
 - [experiment-gap-report-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/experiment-gap-report-template.md): template for triaging missing experiments and blocked claims
+- [source-note-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/source-note-template.md): template for structured external source notes
+- [claims-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/claims-template.md): template for structured candidate claims
+- [result-artifact-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/result-artifact-template.md): template for structured internal result artifacts
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
+- [validate_input_bundle.py](/Users/xu/Desktop/Sopaper/scripts/validate_input_bundle.py): validate structured inputs before running the pipeline
 
 ## Example workflow
 
@@ -146,9 +152,11 @@ See the OpenClaw example set:
 - [openclaw-evidence-brief.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-evidence-brief.md)
 - [openclaw-claim-map.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map.md)
 - [openclaw-gap-report.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report.md)
+- [openclaw-source-note.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-source-note.md)
 - [openclaw-source-list.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-source-list.md)
 - [openclaw-ledger-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-ledger-draft.md)
 - [openclaw-claims.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claims.md)
+- [openclaw-claims-structured.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claims-structured.md)
 - [openclaw-claim-map-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map-draft.md)
 - [openclaw-gap-report-draft.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report-draft.md)
 - [openclaw-pipeline-output.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-pipeline-output.md)
