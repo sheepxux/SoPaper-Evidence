@@ -185,6 +185,34 @@ Point the skill at a project and ask it to produce:
 
 The default output should stay conservative. If a result, comparison, or citation cannot be defended, the correct output is to mark the gap instead of stretching the claim.
 
+## Script workflow
+
+The helper scripts can now bootstrap the first three mechanical steps of the workflow:
+
+1. build an evidence ledger draft
+2. bootstrap a claim-to-evidence map
+3. triage blocker / major / minor evidence gaps
+
+See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
+
+Example:
+
+```bash
+python3 scripts/build_evidence_ledger.py \
+  sopaper-evidence/examples/openclaw-source-list.md \
+  -o output/openclaw-ledger-draft.md
+
+python3 scripts/bootstrap_claim_map.py \
+  sopaper-evidence/examples/openclaw-claims.md \
+  output/openclaw-ledger-draft.md \
+  -o output/openclaw-claim-map-draft.md
+
+python3 scripts/triage_evidence_gaps.py \
+  sopaper-evidence/examples/openclaw-claims.md \
+  output/openclaw-ledger-draft.md \
+  -o output/openclaw-gap-report-draft.md
+```
+
 ## Recommended README completeness
 
 For a strong public repository, these sections matter most:
@@ -218,6 +246,7 @@ Use these files when publishing or presenting the project:
 
 - [marketplace-listing.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/marketplace-listing.md)
 - [github-launch.md](/Users/xu/Desktop/Sopaper/docs/github-launch.md)
+- [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md)
 - [marketplace-launch.md](/Users/xu/Desktop/Sopaper/docs/marketplace-launch.md)
 - [repo-settings.md](/Users/xu/Desktop/Sopaper/docs/repo-settings.md)
 - [marketplace-publish-checklist.md](/Users/xu/Desktop/Sopaper/docs/marketplace-publish-checklist.md)
