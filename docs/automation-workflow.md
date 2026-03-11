@@ -47,6 +47,10 @@ Output:
 
 - a first-pass blocker / major / minor gap report
 
+### 4. Review the generated summary
+
+The unified pipeline also generates a summary file that points to the three drafts and lists the next review actions.
+
 ## Review rule
 
 These outputs are drafts. Review and edit them before using them in any paper-writing workflow.

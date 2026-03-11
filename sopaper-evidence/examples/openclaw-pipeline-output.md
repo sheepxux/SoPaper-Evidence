@@ -4,6 +4,7 @@ This file documents the expected output file set from `scripts/run_evidence_pipe
 
 ## Generated files
 
+- `draft-summary.md`
 - `draft-ledger.md`
 - `draft-claim-map.md`
 - `draft-gap-report.md`

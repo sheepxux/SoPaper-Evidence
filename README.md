@@ -206,6 +206,13 @@ python3 scripts/run_evidence_pipeline.py \
   --output-dir output/openclaw-pipeline
 ```
 
+This command now produces four files:
+
+- `draft-summary.md`
+- `draft-ledger.md`
+- `draft-claim-map.md`
+- `draft-gap-report.md`
+
 Example:
 
 ```bash
