@@ -20,6 +20,14 @@ class EvidenceEntry:
     evidence_id: str
     statement: str
     classification: str
+    source_title: str
+
+
+@dataclass
+class MatchCandidate:
+    entry: EvidenceEntry
+    score: int
+    basis: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,6 +83,7 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
     current_id = ""
     current_statement = ""
     current_classification = "unverified"
+    current_source_title = ""
 
     for line in text.splitlines():
         id_match = ID_RE.match(line)
@@ -85,11 +94,13 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                         evidence_id=current_id,
                         statement=current_statement,
                         classification=current_classification,
+                        source_title=current_source_title,
                     )
                 )
             current_id = id_match.group(1)
             current_statement = ""
             current_classification = "unverified"
+            current_source_title = ""
             continue
 
         field_match = FIELD_RE.match(line)
@@ -100,6 +111,8 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                 current_statement = value
             elif field == "classification":
                 current_classification = value
+            elif field == "source_title":
+                current_source_title = value
 
     if current_id:
         entries.append(
@@ -107,6 +120,7 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                 evidence_id=current_id,
                 statement=current_statement,
                 classification=current_classification,
+                source_title=current_source_title,
             )
         )
 
@@ -127,7 +141,7 @@ def render_claim_map(claims: list[str], evidence: list[EvidenceEntry]) -> str:
 
     for index, claim in enumerate(claims, start=1):
         matches = match_evidence_for_claim(claim, evidence)
-        evidence_ids = ", ".join(item.evidence_id for item in matches[:3])
+        evidence_ids = ", ".join(item.entry.evidence_id for item in matches[:3])
         status = suggest_status(matches)
         notes = suggest_note(matches)
         lines.append(f"| C{index} | {escape_pipes(claim)} | {status} | {evidence_ids} | {escape_pipes(notes)} |")
@@ -151,45 +165,71 @@ def render_claim_map(claims: list[str], evidence: list[EvidenceEntry]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[EvidenceEntry]:
+def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[MatchCandidate]:
     claim_tokens = tokenize(claim)
-    scored: list[tuple[int, EvidenceEntry]] = []
+    scored: list[MatchCandidate] = []
 
     for entry in evidence:
-        if is_placeholder_statement(entry.statement):
-            continue
-        statement_tokens = tokenize(entry.statement)
-        overlap = len(claim_tokens & statement_tokens)
-        if overlap > 0:
-            scored.append((overlap, entry))
+        if not is_placeholder_statement(entry.statement):
+            statement_tokens = tokenize(entry.statement)
+            overlap = len(claim_tokens & statement_tokens)
+            if overlap > 0:
+                scored.append(MatchCandidate(entry=entry, score=overlap * 10, basis="statement"))
+                continue
 
-    scored.sort(key=lambda item: (-item[0], item[1].evidence_id))
-    return [entry for _, entry in scored]
+        title_tokens = tokenize(entry.source_title)
+        title_overlap = len(claim_tokens & title_tokens)
+        if title_overlap > 0:
+            scored.append(MatchCandidate(entry=entry, score=title_overlap, basis="title"))
+
+    scored.sort(key=lambda item: (-item.score, item.entry.evidence_id))
+    return scored
 
 
-def suggest_status(matches: list[EvidenceEntry]) -> str:
+def suggest_status(matches: list[MatchCandidate]) -> str:
     if not matches:
         return "unsupported"
-    if any(match.classification == "verified_fact" for match in matches):
+    if any(match.basis == "statement" and match.entry.classification == "verified_fact" for match in matches):
         return "supported"
-    if any(match.classification == "project_evidence" for match in matches):
+    if any(match.basis == "statement" and match.entry.classification == "project_evidence" for match in matches):
         return "partial"
-    return "partial"
+    return "unsupported"
 
 
-def suggest_note(matches: list[EvidenceEntry]) -> str:
+def suggest_note(matches: list[MatchCandidate]) -> str:
     if not matches:
         return "No matching evidence found. Review the claim wording or add supporting sources."
-    if all(match.classification == "unverified" for match in matches[:3]):
-        return "Matches exist, but all suggested evidence is still unverified."
+    if all(match.basis == "title" for match in matches[:3]):
+        return "Potential title-level leads exist, but no reviewed evidence statement supports this claim yet."
+    if all(match.entry.classification == "unverified" for match in matches[:3]):
+        return "Potential matches exist, but all suggested evidence is still unverified."
     return "Review suggested evidence ids and tighten the claim wording if support is weak."
 
 
 def tokenize(value: str) -> set[str]:
+    stopwords = {
+        "the",
+        "and",
+        "for",
+        "that",
+        "this",
+        "from",
+        "with",
+        "into",
+        "claim",
+        "observation",
+        "summarize",
+        "exact",
+        "todo",
+        "source",
+        "example",
+        "repository",
+        "listing",
+    }
     return {
         token
         for token in re.findall(r"[a-zA-Z0-9]+", value.lower())
-        if len(token) > 2
+        if len(token) > 2 and token not in stopwords
     }
 
 
