@@ -173,9 +173,14 @@ def guess_external_source_type(locator: str) -> str:
 
 def guess_local_source_type(path: Path) -> str:
     suffix = path.suffix.lower()
+    lowered_name = path.name.lower()
     if suffix in {".md", ".txt"}:
+        if looks_like_result_artifact(path):
+            return "local_result"
         return "note"
     if suffix in {".json", ".yaml", ".yml", ".toml"}:
+        if any(token in lowered_name for token in ["result", "metric", "benchmark", "ablation"]):
+            return "local_result"
         return "local_code"
     if suffix in {".csv", ".tsv"}:
         return "local_result"
@@ -187,6 +192,25 @@ def guess_local_classification(path: Path) -> str:
     if source_type == "local_result":
         return "project_evidence"
     return "unverified"
+
+
+def looks_like_result_artifact(path: Path) -> bool:
+    lowered_name = path.name.lower()
+    if any(token in lowered_name for token in ["result", "metric", "benchmark", "ablation", "artifact"]):
+        return True
+    if path.suffix.lower() not in {".md", ".txt"}:
+        return False
+    text = path.read_text(encoding="utf-8")
+    markers = [
+        "## artifact",
+        "artifact type:",
+        "metric:",
+        "provenance:",
+        "run ids:",
+        "baseline set:",
+    ]
+    lowered = text.lower()
+    return any(marker in lowered for marker in markers)
 
 
 def guess_title_from_url(locator: str) -> str:

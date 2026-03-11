@@ -30,6 +30,13 @@ class MatchCandidate:
     basis: str
 
 
+@dataclass
+class ClaimEntry:
+    text: str
+    claim_type: str
+    current_status: str
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -69,12 +76,61 @@ def main() -> int:
     return 0
 
 
-def parse_claims(text: str) -> list[str]:
-    claims: list[str] = []
+def parse_claims(text: str) -> list[ClaimEntry]:
+    structured_claims: list[ClaimEntry] = []
+    current_text = ""
+    current_type = ""
+    current_status = ""
+
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+
+        if stripped.startswith("- Claim:"):
+            if current_text:
+                structured_claims.append(
+                    ClaimEntry(
+                        text=current_text,
+                        claim_type=current_type or "unspecified",
+                        current_status=current_status or "unknown",
+                    )
+                )
+            current_text = stripped.split(":", 1)[1].strip()
+            current_type = ""
+            current_status = ""
+            continue
+
+        if current_text and stripped.startswith("Claim type:"):
+            current_type = stripped.split(":", 1)[1].strip()
+            continue
+
+        if current_text and stripped.startswith("Current status:"):
+            current_status = stripped.split(":", 1)[1].strip()
+            continue
+
+    if current_text:
+        structured_claims.append(
+            ClaimEntry(
+                text=current_text,
+                claim_type=current_type or "unspecified",
+                current_status=current_status or "unknown",
+            )
+        )
+
+    if structured_claims:
+        return structured_claims
+
+    claims: list[ClaimEntry] = []
     for line in text.splitlines():
         match = CLAIM_LINE_RE.match(line)
         if match:
-            claims.append(match.group(1).strip())
+            claims.append(
+                ClaimEntry(
+                    text=match.group(1).strip(),
+                    claim_type="unspecified",
+                    current_status="unknown",
+                )
+            )
     return claims
 
 
@@ -127,7 +183,7 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
     return entries
 
 
-def render_claim_map(claims: list[str], evidence: list[EvidenceEntry]) -> str:
+def render_claim_map(claims: list[ClaimEntry], evidence: list[EvidenceEntry]) -> str:
     lines = [
         "# Claim-to-Evidence Map Draft",
         "",
@@ -142,9 +198,9 @@ def render_claim_map(claims: list[str], evidence: list[EvidenceEntry]) -> str:
     for index, claim in enumerate(claims, start=1):
         matches = match_evidence_for_claim(claim, evidence)
         evidence_ids = ", ".join(item.entry.evidence_id for item in matches[:3])
-        status = suggest_status(matches)
-        notes = suggest_note(matches)
-        lines.append(f"| C{index} | {escape_pipes(claim)} | {status} | {evidence_ids} | {escape_pipes(notes)} |")
+        status = suggest_status(claim, matches)
+        notes = suggest_note(claim, matches)
+        lines.append(f"| C{index} | {escape_pipes(claim.text)} | {status} | {evidence_ids} | {escape_pipes(notes)} |")
 
     lines.extend(
         [
@@ -165,8 +221,9 @@ def render_claim_map(claims: list[str], evidence: list[EvidenceEntry]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[MatchCandidate]:
-    claim_tokens = tokenize(claim)
+def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -> list[MatchCandidate]:
+    claim_tokens = tokenize(claim.text)
+    claim_type_tokens = tokenize(claim.claim_type)
     scored: list[MatchCandidate] = []
 
     for entry in evidence:
@@ -174,31 +231,37 @@ def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[
             statement_tokens = tokenize(entry.statement)
             overlap = len(claim_tokens & statement_tokens)
             if overlap > 0:
-                scored.append(MatchCandidate(entry=entry, score=overlap * 10, basis="statement"))
+                type_boost = len(claim_type_tokens & statement_tokens)
+                scored.append(MatchCandidate(entry=entry, score=overlap * 10 + type_boost * 3, basis="statement"))
                 continue
 
         title_tokens = tokenize(entry.source_title)
         title_overlap = len(claim_tokens & title_tokens)
         if title_overlap > 0:
-            scored.append(MatchCandidate(entry=entry, score=title_overlap, basis="title"))
+            type_boost = len(claim_type_tokens & title_tokens)
+            scored.append(MatchCandidate(entry=entry, score=title_overlap + type_boost, basis="title"))
 
     scored.sort(key=lambda item: (-item.score, item.entry.evidence_id))
     return scored
 
 
-def suggest_status(matches: list[MatchCandidate]) -> str:
+def suggest_status(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "unsupported"
     if any(match.basis == "statement" and match.entry.classification == "verified_fact" for match in matches):
         return "supported"
     if any(match.basis == "statement" and match.entry.classification == "project_evidence" for match in matches):
         return "partial"
+    if claim.current_status == "blocked":
+        return "unsupported"
     return "unsupported"
 
 
-def suggest_note(matches: list[MatchCandidate]) -> str:
+def suggest_note(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "No matching evidence found. Review the claim wording or add supporting sources."
+    if claim.claim_type == "comparative result":
+        return "Potential leads exist, but comparative-result claims still require reviewed result evidence and a fair baseline set."
     if all(match.basis == "title" for match in matches[:3]):
         return "Potential title-level leads exist, but no reviewed evidence statement supports this claim yet."
     if all(match.entry.classification == "unverified" for match in matches[:3]):
