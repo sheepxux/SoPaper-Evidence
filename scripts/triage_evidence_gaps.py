@@ -60,6 +60,22 @@ def main() -> int:
 
 
 def parse_claims(text: str) -> list[str]:
+    structured_claims: list[str] = []
+    current_text = ""
+
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("- Claim:"):
+            if current_text:
+                structured_claims.append(current_text)
+            current_text = stripped.split(":", 1)[1].strip()
+
+    if current_text:
+        structured_claims.append(current_text)
+
+    if structured_claims:
+        return structured_claims
+
     claims: list[str] = []
     for line in text.splitlines():
         match = CLAIM_LINE_RE.match(line)
