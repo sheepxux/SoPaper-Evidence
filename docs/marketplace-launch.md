@@ -41,11 +41,12 @@ Sopaper Evidence does not invent papers, results, datasets, benchmark wins, or c
 ## Launch steps
 
 1. Publish the GitHub release for `v0.2.0`
-2. Create the marketplace listing using the title, description, and tags above
-3. Add the GitHub repository URL as the source link
-4. Use the cover image from `docs/assets/cover.png`
-5. Link or mention the OpenClaw example chain in the listing body
-6. After the listing is live, add the marketplace URL back to the GitHub repository website field
+2. Publish to ClawHub with the official CLI
+3. Create the marketplace listing using the title, description, and tags above
+4. Add the GitHub repository URL as the source link
+5. Use the cover image from `docs/assets/cover.png`
+6. Link or mention the OpenClaw example chain in the listing body
+7. After the listing is live, add the marketplace URL back to the GitHub repository website field
 
 ## Final QA
 
