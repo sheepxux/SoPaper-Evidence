@@ -4,7 +4,7 @@ This example shows the intended output shape from `scripts/build_evidence_ledger
 
 - id: E01
   statement: "TODO: summarize the exact claim or observation from OpenClaw Source List Example."
-  classification: project_evidence
+  classification: unverified
   source_type: note
   source_title: "OpenClaw Source List Example"
   source_locator: "/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-source-list.md"

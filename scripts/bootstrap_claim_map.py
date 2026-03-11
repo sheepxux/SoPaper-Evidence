@@ -156,6 +156,8 @@ def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[
     scored: list[tuple[int, EvidenceEntry]] = []
 
     for entry in evidence:
+        if is_placeholder_statement(entry.statement):
+            continue
         statement_tokens = tokenize(entry.statement)
         overlap = len(claim_tokens & statement_tokens)
         if overlap > 0:
@@ -168,7 +170,9 @@ def match_evidence_for_claim(claim: str, evidence: list[EvidenceEntry]) -> list[
 def suggest_status(matches: list[EvidenceEntry]) -> str:
     if not matches:
         return "unsupported"
-    if any(match.classification in {"verified_fact", "project_evidence"} for match in matches):
+    if any(match.classification == "verified_fact" for match in matches):
+        return "supported"
+    if any(match.classification == "project_evidence" for match in matches):
         return "partial"
     return "partial"
 
@@ -187,6 +191,11 @@ def tokenize(value: str) -> set[str]:
         for token in re.findall(r"[a-zA-Z0-9]+", value.lower())
         if len(token) > 2
     }
+
+
+def is_placeholder_statement(value: str) -> bool:
+    lowered = value.strip().lower()
+    return lowered.startswith("todo:")
 
 
 def strip_quotes(value: str) -> str:

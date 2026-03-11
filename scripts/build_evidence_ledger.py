@@ -83,7 +83,7 @@ def collect_sources(paths: Iterable[Path]) -> list[SourceItem]:
                 title=extract_local_title(path),
                 locator=str(path),
                 source_type=guess_local_source_type(path),
-                classification="project_evidence",
+                classification=guess_local_classification(path),
                 origin=path.name,
             )
             add_source(items, seen, local_source)
@@ -180,6 +180,13 @@ def guess_local_source_type(path: Path) -> str:
     if suffix in {".csv", ".tsv"}:
         return "local_result"
     return "local_code"
+
+
+def guess_local_classification(path: Path) -> str:
+    source_type = guess_local_source_type(path)
+    if source_type == "local_result":
+        return "project_evidence"
+    return "unverified"
 
 
 def guess_title_from_url(locator: str) -> str:
