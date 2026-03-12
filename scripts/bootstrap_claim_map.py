@@ -270,8 +270,15 @@ def suggest_status(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
         if any(match.basis == "statement" and match.entry.classification in {"project_evidence", "verified_fact"} for match in matches):
             return "partial"
         return "unsupported"
-    if any(match.basis == "statement" and match.entry.classification == "verified_fact" for match in matches):
+    if any(
+        match.basis == "statement"
+        and match.entry.classification == "verified_fact"
+        and not is_page_metadata_statement(match.entry.statement)
+        for match in matches
+    ):
         return "supported"
+    if any(match.basis == "statement" and match.entry.classification == "verified_fact" for match in matches):
+        return "partial"
     if any(match.basis == "statement" and match.entry.classification == "project_evidence" for match in matches):
         return "partial"
     if claim.current_status == "blocked":
@@ -288,6 +295,8 @@ def suggest_note(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
         return "Potential title-level leads exist, but no reviewed evidence statement supports this claim yet."
     if all(match.entry.classification == "unverified" for match in matches[:3]):
         return "Potential matches exist, but all suggested evidence is still unverified."
+    if any(is_page_metadata_statement(match.entry.statement) for match in matches[:3]):
+        return "Verified page-level facts exist, but reviewed source statements are still needed for stronger support."
     return "Review suggested evidence ids and tighten the claim wording if support is weak."
 
 
@@ -313,6 +322,11 @@ def classification_weight(classification: str) -> int:
     if classification == "inference":
         return 2
     return 0
+
+
+def is_page_metadata_statement(statement: str) -> bool:
+    lowered = statement.lower()
+    return lowered.startswith("fetched page title:") or lowered.startswith("meta description:")
 
 
 def tokenize(value: str) -> set[str]:

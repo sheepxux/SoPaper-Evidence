@@ -274,6 +274,8 @@ def guess_external_source_type(locator: str, content_type: str) -> str:
     host = parsed.netloc.lower()
     path = parsed.path.lower()
 
+    if any(token in host for token in ["sourcegraph.com", "theaireport.net"]) or "blog" in path:
+        return "blog"
     if "arxiv.org" in host or "doi.org" in host:
         return "paper"
     if "github.com" in host or "gitlab.com" in host:
@@ -314,7 +316,19 @@ def summarize_paragraphs(paragraphs: list[str]) -> list[str]:
     for paragraph in paragraphs:
         normalized = clean_text(paragraph)
         lowered = normalized.lower()
-        if any(token in lowered for token in ["donate", "privacy policy", "cookie", "terms of use", "we gratefully acknowledge support"]):
+        if any(
+            token in lowered
+            for token in [
+                "donate",
+                "privacy policy",
+                "cookie",
+                "terms of use",
+                "we gratefully acknowledge support",
+                "all fields title author abstract",
+                "sign up",
+                "log in",
+            ]
+        ):
             continue
         if normalized and normalized not in cleaned:
             cleaned.append(normalized)
@@ -365,6 +379,8 @@ def infer_relevance(source_type: str, task: str, metrics: str) -> str:
         return f"This fetched benchmark source may help define evaluation fit for {task} and related metrics such as {metrics}."
     if source_type == "repo":
         return "This fetched repository may help verify implementation scope or artifact availability."
+    if source_type == "blog":
+        return "This fetched blog or news page may provide discovery leads, but it should not anchor factual research claims."
     if source_type == "official_doc":
         return "This fetched documentation page may help verify definitions, interfaces, or evaluation concepts."
     return "TODO: explain why this fetched source matters for the current evidence pack."
@@ -375,6 +391,8 @@ def infer_comparable_scope(source_type: str) -> str:
         return "potentially comparable after manual review"
     if source_type in {"repo", "official_doc"}:
         return "contextual until manually reviewed"
+    if source_type == "blog":
+        return "discovery-only unless manually traced back to a primary source"
     return "unknown"
 
 
@@ -385,6 +403,8 @@ def infer_limits(source_type: str, paragraphs: list[str]) -> str:
         return "Benchmark scope and task overlap still need manual review before using it for direct comparisons."
     if source_type == "repo":
         return "Repository metadata alone does not prove evaluation results or benchmark performance."
+    if source_type == "blog":
+        return "Blog content may summarize useful context, but it should be traced back to a primary source before use in evidence mapping."
     if source_type == "official_doc":
         return "Documentation content may define concepts, but it does not by itself validate comparative claims."
     return "TODO: state scope limits, benchmark mismatch risk, or unresolved verification gaps."

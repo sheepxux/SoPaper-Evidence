@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 from pathlib import Path
-from urllib.parse import parse_qs, quote_plus, unquote, urlparse
+from urllib.parse import parse_qs, quote_plus, unquote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -16,6 +17,48 @@ RESULT_LINK_RE = re.compile(
     r'<a[^>]+class="result__a"[^>]+href="(?P<href>[^"]+)"[^>]*>(?P<title>.*?)</a>',
     re.IGNORECASE | re.DOTALL,
 )
+SECONDARY_HOSTS = {
+    "theaireport.net",
+    "sourcegraph.com",
+    "alphaxiv.org",
+    "www.alphaxiv.org",
+    "catalyzex.com",
+    "www.catalyzex.com",
+}
+PRIMARY_HOSTS = {
+    "arxiv.org",
+    "openreview.net",
+    "aclanthology.org",
+    "github.com",
+    "huggingface.co",
+    "openai.com",
+}
+GENERIC_TOPIC_TERMS = {
+    "a",
+    "an",
+    "and",
+    "arxiv",
+    "assistant",
+    "assistants",
+    "benchmark",
+    "benchmarks",
+    "dataset",
+    "datasets",
+    "documentation",
+    "evaluation",
+    "for",
+    "github",
+    "in",
+    "of",
+    "official",
+    "on",
+    "paper",
+    "repo",
+    "the",
+    "theme",
+    "topic",
+    "work",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -56,6 +99,7 @@ def collect_queries(topic: str | None, plan_path: str | None) -> list[str]:
                 f"{topic} official documentation",
             ]
         )
+        queries.extend(expand_topic_queries(topic))
     if plan_path:
         text = Path(plan_path).expanduser().resolve().read_text(encoding="utf-8")
         queries.extend(match.group(1).strip() for match in QUERY_LINE_RE.finditer(text))
@@ -69,20 +113,179 @@ def collect_queries(topic: str | None, plan_path: str | None) -> list[str]:
 
 
 def search_queries(queries: list[str], limit: int) -> list[dict[str, str]]:
-    seen: set[str] = set()
-    results: list[dict[str, str]] = []
+    seen_url: set[str] = set()
+    best_by_title: dict[str, dict[str, str]] = {}
+    topic_terms = extract_topic_terms(queries)
 
     for query in queries:
-        for result in search_duckduckgo(query):
+        for result in search_sources(query):
             if should_skip_result(result["url"]):
                 continue
-            canonical = canonicalize_url(result["url"])
-            if canonical in seen:
+            overlap = result_overlap(result["title"], result["url"], topic_terms)
+            if topic_terms and overlap < minimum_overlap(result["url"]):
                 continue
-            seen.add(canonical)
-            results.append(result | {"query": query})
-            if len(results) >= limit:
-                return results
+            canonical = canonicalize_url(result["url"])
+            if canonical in seen_url:
+                continue
+            seen_url.add(canonical)
+            enriched = result | {
+                "query": query,
+                "score": result_score(result["url"], result["title"], overlap),
+            }
+            title_key = canonicalize_title(result["title"])
+            current = best_by_title.get(title_key)
+            if current is None or enriched["score"] > current["score"]:
+                best_by_title[title_key] = enriched
+
+    ranked = sorted(best_by_title.values(), key=lambda item: (-item["score"], item["title"]))
+    return ranked[:limit]
+
+
+def search_sources(query: str) -> list[dict[str, str]]:
+    results: list[dict[str, str]] = []
+    results.extend(search_openalex(query))
+    results.extend(search_github_repositories(query))
+    results.extend(search_duckduckgo(query))
+    return results
+
+
+def expand_topic_queries(topic: str) -> list[str]:
+    lowered = topic.lower()
+    queries: list[str] = []
+    if any(token in lowered for token in ["browser", "browsing", "web agent", "browser agent"]):
+        queries.extend(
+            [
+                f"{topic} BrowseComp",
+                f"{topic} WebArena benchmark",
+                f"{topic} browsing agents benchmark",
+            ]
+        )
+    if any(token in lowered for token in ["retrieval", "citation", "rag", "code assistant", "code assistants"]):
+        queries.extend(
+            [
+                f"{topic} code retrieval benchmark",
+                f"{topic} citation benchmark",
+                f"{topic} grounded generation retrieval benchmark",
+            ]
+        )
+    return queries
+
+
+def extract_topic_terms(queries: list[str]) -> set[str]:
+    terms: set[str] = set()
+    for query in queries:
+        for token in tokenize_text(query):
+            if len(token) < 3 or token in GENERIC_TOPIC_TERMS:
+                continue
+            terms.add(token)
+    return terms
+
+
+def result_overlap(title: str, url: str, topic_terms: set[str]) -> int:
+    haystack_tokens = tokenize_text(title) | tokenize_text(canonicalize_url(url))
+    matched = {term for term in topic_terms if term in haystack_tokens}
+    return len(matched)
+
+
+def minimum_overlap(url: str) -> int:
+    host = urlparse(url).netloc.lower()
+    if "github.com" in host:
+        return 1
+    return 2
+
+
+def search_openalex(query: str) -> list[dict[str, str]]:
+    url = "https://api.openalex.org/works?" + urlencode(
+        {
+            "search": query,
+            "per-page": 8,
+            "filter": "type:article|preprint|dataset",
+            "select": "display_name,primary_location,locations,ids",
+        }
+    )
+    request = Request(
+        url,
+        headers={
+            "User-Agent": (
+                "SopaperEvidence/0.6 (+https://github.com/sheepxux/SoPaper-Evidence)"
+            )
+        },
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return []
+
+    results: list[dict[str, str]] = []
+    for item in payload.get("results", []):
+        title = clean_text(item.get("display_name", ""))
+        if not title:
+            continue
+        url = choose_openalex_url(item)
+        if not url:
+            continue
+        results.append({"title": title, "url": url})
+    return results
+
+
+def choose_openalex_url(item: dict) -> str | None:
+    primary = item.get("primary_location") or {}
+    for candidate in [
+        primary.get("landing_page_url"),
+        primary.get("pdf_url"),
+    ]:
+        if candidate and candidate.startswith("http"):
+            return candidate
+
+    for location in item.get("locations", []):
+        for candidate in [
+            location.get("landing_page_url"),
+            location.get("pdf_url"),
+        ]:
+            if candidate and candidate.startswith("http"):
+                return candidate
+
+    ids = item.get("ids") or {}
+    for key in ["doi", "arxiv", "openalex"]:
+        candidate = ids.get(key)
+        if candidate and candidate.startswith("http"):
+            return candidate
+    return None
+
+
+def search_github_repositories(query: str) -> list[dict[str, str]]:
+    url = "https://api.github.com/search/repositories?" + urlencode(
+        {
+            "q": query,
+            "sort": "stars",
+            "order": "desc",
+            "per_page": 5,
+        }
+    )
+    request = Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": (
+                "SopaperEvidence/0.6 (+https://github.com/sheepxux/SoPaper-Evidence)"
+            ),
+        },
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return []
+
+    results: list[dict[str, str]] = []
+    for item in payload.get("items", []):
+        title = clean_text(item.get("full_name", ""))
+        description = clean_text(item.get("description", ""))
+        href = item.get("html_url", "")
+        combined = title if not description else f"{title}: {description}"
+        if combined and href.startswith("http"):
+            results.append({"title": combined, "url": href})
     return results
 
 
@@ -98,8 +301,13 @@ def search_duckduckgo(query: str) -> list[dict[str, str]]:
             )
         },
     )
-    with urlopen(request, timeout=20) as response:
-        raw = response.read().decode("utf-8", errors="replace")
+    try:
+        with urlopen(request, timeout=20) as response:
+            raw = response.read().decode("utf-8", errors="replace")
+    except Exception:
+        return []
+    if "anomaly-modal__title" in raw or "bots use DuckDuckGo too" in raw:
+        return []
     results: list[dict[str, str]] = []
     for match in RESULT_LINK_RE.finditer(raw):
         href = extract_result_url(match.group("href"))
@@ -158,7 +366,43 @@ def should_skip_result(url: str) -> bool:
         or parsed.path.endswith(".pdf")
         or "researchgate.net" in host
         or "semanticscholar.org" in host
+        or "bing.com" in host
     )
+
+
+def result_score(url: str, title: str, overlap: int) -> int:
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    score = 0
+    score += overlap * 4
+    if host in PRIMARY_HOSTS:
+        score += 10
+    if host in SECONDARY_HOSTS:
+        score -= 3
+    if "github.com" in host:
+        score += 2
+    if "arxiv.org" in host or "openreview.net" in host or "aclanthology.org" in host:
+        score += 4
+    lowered_title = title.lower()
+    if any(token in lowered_title for token in ["benchmark", "dataset", "evaluation", "agents", "retrieval"]):
+        score += 2
+    if any(token in lowered_title for token in ["blog", "news", "report"]):
+        score -= 2
+    return score
+
+
+def canonicalize_title(title: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+
+
+def tokenize_text(value: str) -> set[str]:
+    return {normalize_token(token) for token in re.findall(r"[a-z0-9]+", value.lower())}
+
+
+def normalize_token(token: str) -> str:
+    if len(token) > 4 and token.endswith("s"):
+        return token[:-1]
+    return token
 
 
 def clean_text(value: str) -> str:
