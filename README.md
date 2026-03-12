@@ -2,7 +2,7 @@
 
 ![Sopaper Evidence cover](docs/assets/cover.png)
 
-Current version: `v0.6-dev`
+Current version: `v0.6.0`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
@@ -37,6 +37,8 @@ Sopaper Evidence is built around a stricter workflow:
 - lightweight automation for claim map bootstrapping
 - lightweight automation for evidence gap triage
 - structured note and result-artifact extraction that reduces placeholder-only drafts
+- topic-first search, fetch, verification, and evidence-pack generation from a single research theme
+- structured result-artifact ingestion that can upgrade comparative claim support when direct internal evidence exists
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging
 - a repository that can act as the public source of truth
@@ -210,11 +212,13 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 2. bootstrap a claim-to-evidence map
 3. triage blocker / major / minor evidence gaps
 
-Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `partial` without weakening the evidence rules.
+Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `supported` when direct result, metric, and baseline context are present.
 
 When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts with page metadata and candidate facts before ledger construction. A conservative verification pass can then upgrade clearly reviewable page-metadata notes before they enter the ledger.
 
 If the user starts only with a topic or paper theme, the topic-driven pipeline can generate a search plan, candidate claims, a searched source list, fetched source-note drafts, and the downstream evidence pack.
+
+If reviewed local result artifacts are also available, the same pipeline can ingest them directly and use them as `project_evidence` for comparative-result gating.
 
 See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
 
@@ -242,6 +246,15 @@ For a topic-first workflow, run:
 python3 scripts/run_topic_evidence_pipeline.py \
   "citation-grounded retrieval for code assistants" \
   --output-dir output/topic-rag-citations
+```
+
+Topic-first with structured result artifacts:
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "OpenClaw long-horizon manipulation benchmark evaluation" \
+  --result-artifacts sopaper-evidence/examples/openclaw-result-artifact.md \
+  --output-dir output/topic-openclaw
 ```
 
 Example:
