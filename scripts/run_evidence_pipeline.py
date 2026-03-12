@@ -32,6 +32,11 @@ def parse_args() -> argparse.Namespace:
         help="Fetch external URLs from the source inputs into structured source-note drafts before building the ledger.",
     )
     parser.add_argument(
+        "--verify-fetched",
+        action="store_true",
+        help="Run a conservative verification pass over fetched source-note drafts before ledger construction.",
+    )
+    parser.add_argument(
         "--output-dir",
         default="output/evidence-pipeline",
         help="Directory for generated outputs. Default: output/evidence-pipeline",
@@ -62,6 +67,9 @@ def main() -> int:
     if args.fetch_external:
         fetched_dir = output_dir / "fetched-sources"
         generated_notes = run_fetch_external(root, sources, fetched_dir)
+        if args.verify_fetched and generated_notes:
+            verified_dir = output_dir / "verified-sources"
+            generated_notes = run_verify_fetched(root, generated_notes, verified_dir)
         sources = sources + generated_notes
 
     ledger_path = output_dir / f"{args.prefix}-ledger.md"
@@ -116,6 +124,15 @@ def run_fetch_external(root: Path, sources: list[Path], output_dir: Path) -> lis
     )
     if result.returncode != 0 and "No external URLs found." not in result.stderr:
         raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+    return sorted(output_dir.glob("*.md"))
+
+
+def run_verify_fetched(root: Path, notes: list[Path], output_dir: Path) -> list[Path]:
+    script = root / "scripts" / "verify_source_notes.py"
+    subprocess.run(
+        [sys.executable, str(script), *[str(path) for path in notes], "--output-dir", str(output_dir)],
+        check=True,
+    )
     return sorted(output_dir.glob("*.md"))
 
 

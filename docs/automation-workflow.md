@@ -41,6 +41,19 @@ Output:
 - titles, access dates, directly observed page metadata, and candidate facts
 - verification status left in a review-required state until a human upgrades it
 
+### 0.5. Verify fetched source notes conservatively
+
+```bash
+python3 scripts/verify_source_notes.py \
+  output/openclaw-fetched-sources/*.md \
+  --output-dir output/openclaw-verified-sources
+```
+
+Output:
+
+- source-note drafts upgraded to `verified-page-metadata` when page-level facts are clear enough
+- still conservative: this does not validate benchmark wins, method quality, or comparative performance
+
 ### 1. Build an evidence ledger draft
 
 ```bash

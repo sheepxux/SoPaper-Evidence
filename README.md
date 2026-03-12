@@ -143,6 +143,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [generate_topic_claims.py](/Users/xu/Desktop/Sopaper/scripts/generate_topic_claims.py): turn a topic into a cautious structured claims draft
 - [search_external_sources.py](/Users/xu/Desktop/Sopaper/scripts/search_external_sources.py): search the web for candidate papers, benchmarks, repos, and docs from a topic or search plan
 - [fetch_external_sources.py](/Users/xu/Desktop/Sopaper/scripts/fetch_external_sources.py): fetch external URLs into structured source-note drafts with access dates, candidate facts, and review-required verification status
+- [verify_source_notes.py](/Users/xu/Desktop/Sopaper/scripts/verify_source_notes.py): conservatively upgrade fetched source notes from review-required to verified page-metadata notes when the page-level facts are clear enough
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
@@ -211,7 +212,7 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 
 Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `partial` without weakening the evidence rules.
 
-When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts with page metadata and candidate facts before ledger construction.
+When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts with page metadata and candidate facts before ledger construction. A conservative verification pass can then upgrade clearly reviewable page-metadata notes before they enter the ledger.
 
 If the user starts only with a topic or paper theme, the topic-driven pipeline can generate a search plan, candidate claims, a searched source list, fetched source-note drafts, and the downstream evidence pack.
 
@@ -224,6 +225,7 @@ python3 scripts/run_evidence_pipeline.py \
   --sources sopaper-evidence/examples/openclaw-source-list.md \
   --claims sopaper-evidence/examples/openclaw-claims.md \
   --fetch-external \
+  --verify-fetched \
   --output-dir output/openclaw-pipeline
 ```
 

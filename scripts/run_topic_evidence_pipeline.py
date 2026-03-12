@@ -54,6 +54,7 @@ def main() -> int:
             "--claims",
             str(claims_path),
             "--fetch-external",
+            "--verify-fetched",
             "--output-dir",
             str(output_dir / "pipeline"),
         ],

@@ -232,7 +232,7 @@ def guess_local_classification(path: Path, source_type: str, structured: dict[st
     ).lower()
     if source_type == "local_result":
         return "project_evidence"
-    if source_type == "note" and "verified" in verification:
+    if source_type == "note" and verification in {"verified", "verified-page-metadata", "reviewed-primary"}:
         return "verified_fact"
     return "unverified"
 
@@ -249,7 +249,6 @@ def looks_like_result_artifact(path: Path) -> bool:
     markers = [
         "## artifact",
         "artifact type:",
-        "metric:",
         "provenance:",
         "run ids:",
         "baseline set:",
