@@ -121,6 +121,8 @@ def search_queries(queries: list[str], limit: int, topic_terms: set[str]) -> lis
         for result in search_sources(query):
             if should_skip_result(result["url"]):
                 continue
+            if not query_semantic_gate(query, result["title"], result["url"]):
+                continue
             overlap = result_overlap(result["title"], result["url"], topic_terms)
             if topic_terms and overlap < minimum_overlap(result["url"]):
                 continue
@@ -186,6 +188,11 @@ def expand_topic_queries(topic: str) -> list[str]:
                 f"{topic} code retrieval benchmark",
                 f"{topic} citation benchmark",
                 f"{topic} grounded generation retrieval benchmark",
+                "code information retrieval benchmark",
+                "code retrieval benchmark",
+                "citation-grounded QA benchmark",
+                "grounded generation citation benchmark",
+                "retrieval evaluation benchmark",
             ]
         )
     return queries
@@ -212,6 +219,19 @@ def minimum_overlap(url: str) -> int:
     if "github.com" in host:
         return 1
     return 2
+
+
+def query_semantic_gate(query: str, title: str, url: str) -> bool:
+    query_tokens = tokenize_text(query)
+    title_tokens = tokenize_text(title) | tokenize_text(canonicalize_url(url))
+    benchmark_tokens = {"benchmark", "evaluation", "leaderboard", "dataset"}
+    repo_tokens = {"repo", "github", "implementation"}
+
+    if query_tokens & benchmark_tokens and not (title_tokens & benchmark_tokens):
+        return False
+    if query_tokens & repo_tokens and "github.com" not in urlparse(url).netloc.lower():
+        return False
+    return True
 
 
 def search_openalex(query: str) -> list[dict[str, str]]:

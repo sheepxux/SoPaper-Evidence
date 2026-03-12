@@ -16,9 +16,11 @@
 - The improved OpenClaw source list includes CALVIN, FurnitureBench, LoHoRavens, VLABench, and IKEA Furniture Assembly environment pages.
 - The OpenClaw claim map now reaches `partial` for positioning and evaluation framing claims, which is the intended intermediate state before reviewed benchmark notes exist.
 - The next remaining bottleneck is no longer source recall for OpenClaw; it is stronger statement extraction from fetched robotics benchmark notes.
+- Retrieval/citation rerun after query-aware filtering no longer mixes in obviously irrelevant retrieval papers from non-AI domains.
+- Retrieval/citation source recall is cleaner but still narrow; the current pipeline mainly surfaces xCodeEval-style benchmark results and still needs broader citation-grounded benchmark recall.
 
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
-- Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and still weak for code-retrieval citation themes.
+- Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and cleaner but still narrow for code-retrieval citation themes.
 - The current bottleneck is no longer pipeline stability; it is source recall and statement quality.
