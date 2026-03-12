@@ -246,7 +246,7 @@ def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -
                 if entry.source_type in preferred_types:
                     score += 4
                 if comparative and entry.classification == "project_evidence":
-                    score += 6
+                    score += 12
                 scored.append(MatchCandidate(entry=entry, score=score, basis="statement"))
                 continue
 
@@ -268,6 +268,19 @@ def suggest_status(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "unsupported"
     if is_comparative_claim(claim):
+        has_direct_result = any(
+            match.basis == "statement"
+            and match.entry.classification == "project_evidence"
+            and is_direct_result_statement(match.entry.statement)
+            for match in matches
+        )
+        has_baseline_context = any(
+            match.basis == "statement"
+            and has_baseline_signal(match.entry.statement)
+            for match in matches
+        )
+        if has_direct_result and has_baseline_context:
+            return "supported"
         if any(match.basis == "statement" and match.entry.classification in {"project_evidence", "verified_fact"} for match in matches):
             return "partial"
         return "unsupported"
@@ -291,6 +304,8 @@ def suggest_note(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "No matching evidence found. Review the claim wording or add supporting sources."
     if is_comparative_claim(claim):
+        if suggest_status(claim, matches) == "supported":
+            return "Direct result evidence and baseline context exist, but external source review is still needed before stronger paper claims."
         return "Potential leads exist, but comparative-result claims still require reviewed result evidence and a fair baseline set."
     if all(match.basis == "title" for match in matches[:3]):
         return "Potential title-level leads exist, but no reviewed evidence statement supports this claim yet."
@@ -336,12 +351,26 @@ def statement_kind_boost(claim: ClaimEntry, statement: str) -> int:
         return 8
     if "comparative" in lowered_claim and "candidate metric fact:" in lowered_statement:
         return 3
+    if "comparative" in lowered_claim and is_direct_result_statement(statement):
+        return 12
+    if "comparative" in lowered_claim and has_baseline_signal(statement):
+        return 8
     return 0
 
 
 def is_page_metadata_statement(statement: str) -> bool:
     lowered = statement.lower()
     return lowered.startswith("fetched page title:") or lowered.startswith("meta description:")
+
+
+def is_direct_result_statement(statement: str) -> bool:
+    lowered = statement.lower()
+    return "internal result artifact tracks" in lowered or "direct result evidence" in lowered
+
+
+def has_baseline_signal(statement: str) -> bool:
+    lowered = statement.lower()
+    return "candidate baseline fact:" in lowered or " against " in lowered or "baseline" in lowered
 
 
 def tokenize(value: str) -> set[str]:

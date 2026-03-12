@@ -26,9 +26,12 @@
 - The pipeline now reaches a stable pattern on both OpenClaw and retrieval/citation topics: positioning support can become `supported`, while evaluation/comparative claims remain conservatively constrained without direct result evidence.
 - Gap reports now distinguish between `direct result evidence`, `metric definition`, and `source verification` instead of collapsing everything into a generic blocker.
 - The next meaningful upgrade for comparative claims is no longer generic search improvement; it is adding structured result artifacts or stronger metric extraction from primary sources.
+- After ingesting a structured OpenClaw result artifact, the ledger now includes a `project_evidence` entry with direct result, metric, and baseline context instead of leaving comparative support entirely to fetched external notes.
+- On the OpenClaw rerun with the result artifact, the `direct result evidence` and `metric definition` gaps disappear, leaving `source verification` and `evaluation scope` as the remaining major issues.
+- Result-artifact ingestion now gives the comparative-result claim a real project-evidence anchor rather than only benchmark-alignment signals from external benchmark pages.
 
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
 - Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and cleaner but still narrow for code-retrieval citation themes.
-- The current bottleneck is no longer pipeline stability; it is broader source recall and richer metric/baseline extraction from primary sources.
+- The current bottleneck is no longer pipeline stability; it is broader source recall, deeper primary-source review, and stronger handling of reviewed benchmark/result statements.

@@ -183,6 +183,9 @@ def build_gap_rows(claims: list[str], evidence: list[EvidenceEntry]) -> list[dic
         token in " ".join(claims).lower()
         for token in ["metric", "citation quality", "result provenance", "baseline fairness", "evaluation setup"]
     )
+    has_metric_signal = "candidate metric fact:" in verified_text or any(
+        token in verified_text for token in ["success rate", "accuracy", "precision", "recall", "f1"]
+    )
 
     if verified_count == 0:
         rows.append(
@@ -236,7 +239,7 @@ def build_gap_rows(claims: list[str], evidence: list[EvidenceEntry]) -> list[dic
             }
         )
 
-    if needs_metric_detail and "candidate metric fact:" not in verified_text:
+    if needs_metric_detail and not has_metric_signal:
         rows.append(
             {
                 "severity": "major",

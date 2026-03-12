@@ -288,7 +288,16 @@ def build_local_statement(path: Path, title: str, source_type: str, structured: 
         scope = structured.get("scope", "the current evaluation scope")
         baseline_set = structured.get("baseline set")
         baseline_suffix = f" against {baseline_set}" if baseline_set else ""
-        return f"Internal result artifact tracks {metric} for {scope}{baseline_suffix}."
+        metric_fact = f" Candidate metric fact: This artifact defines or reports {metric}."
+        baseline_fact = (
+            f" Candidate baseline fact: This artifact compares against {baseline_set}."
+            if baseline_set
+            else ""
+        )
+        return (
+            f"Internal result artifact tracks {metric} for {scope}{baseline_suffix}."
+            f"{metric_fact}{baseline_fact}"
+        )
 
     key_facts = structured.get("key facts:fact") or structured.get("fact")
     if key_facts:

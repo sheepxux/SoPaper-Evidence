@@ -27,6 +27,12 @@ def parse_args() -> argparse.Namespace:
         help="Markdown file containing candidate claims.",
     )
     parser.add_argument(
+        "--result-artifacts",
+        nargs="*",
+        default=[],
+        help="Structured result-artifact markdown files to ingest alongside source files.",
+    )
+    parser.add_argument(
         "--fetch-external",
         action="store_true",
         help="Fetch external URLs from the source inputs into structured source-note drafts before building the ledger.",
@@ -53,15 +59,18 @@ def main() -> int:
     args = parse_args()
     root = Path(__file__).resolve().parent.parent
     sources = [Path(value).expanduser().resolve() for value in args.sources]
+    result_artifacts = [Path(value).expanduser().resolve() for value in args.result_artifacts]
     claims = Path(args.claims).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    missing = [str(path) for path in sources + [claims] if not path.exists()]
+    missing = [str(path) for path in sources + result_artifacts + [claims] if not path.exists()]
     if missing:
         for item in missing:
             print(f"Missing input: {item}", file=sys.stderr)
         return 1
+
+    validate_result_artifacts(root, result_artifacts)
 
     generated_notes: list[Path] = []
     if args.fetch_external:
@@ -71,6 +80,8 @@ def main() -> int:
             verified_dir = output_dir / "verified-sources"
             generated_notes = run_verify_fetched(root, generated_notes, verified_dir)
         sources = sources + generated_notes
+
+    sources = sources + result_artifacts
 
     ledger_path = output_dir / f"{args.prefix}-ledger.md"
     claim_map_path = output_dir / f"{args.prefix}-claim-map.md"
@@ -92,12 +103,13 @@ def main() -> int:
 
     write_summary(
         summary_path=summary_path,
-        sources=sources,
+        sources=[path for path in sources if path not in result_artifacts],
         claims=claims,
         ledger_path=ledger_path,
         claim_map_path=claim_map_path,
         gap_report_path=gap_report_path,
         generated_notes=generated_notes,
+        result_artifacts=result_artifacts,
     )
 
     print("Pipeline complete.")
@@ -136,6 +148,19 @@ def run_verify_fetched(root: Path, notes: list[Path], output_dir: Path) -> list[
     return sorted(output_dir.glob("*.md"))
 
 
+def validate_result_artifacts(root: Path, artifacts: list[Path]) -> None:
+    if not artifacts:
+        return
+    validator = root / "scripts" / "validate_input_bundle.py"
+    for artifact in artifacts:
+        subprocess.run(
+            [sys.executable, str(validator), "result-artifact", str(artifact)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+
 def write_summary(
     *,
     summary_path: Path,
@@ -145,6 +170,7 @@ def write_summary(
     claim_map_path: Path,
     gap_report_path: Path,
     generated_notes: list[Path],
+    result_artifacts: list[Path],
 ) -> None:
     lines = [
         "# Evidence Pipeline Summary",
@@ -158,6 +184,17 @@ def write_summary(
 
     for source in sources:
         lines.append(f"- Source file: `{source}`")
+
+    if result_artifacts:
+        lines.extend(
+            [
+                "",
+                "## Result artifacts",
+                "",
+            ]
+        )
+        for artifact in result_artifacts:
+            lines.append(f"- Result artifact: `{artifact}`")
 
     if generated_notes:
         lines.extend(

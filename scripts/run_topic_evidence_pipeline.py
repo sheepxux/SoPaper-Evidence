@@ -27,6 +27,12 @@ def parse_args() -> argparse.Namespace:
         default=8,
         help="Maximum number of search results to keep. Default: 8",
     )
+    parser.add_argument(
+        "--result-artifacts",
+        nargs="*",
+        default=[],
+        help="Structured result-artifact markdown files to ingest into the downstream evidence pipeline.",
+    )
     return parser.parse_args()
 
 
@@ -55,6 +61,11 @@ def main() -> int:
             str(claims_path),
             "--fetch-external",
             "--verify-fetched",
+            *(
+                ["--result-artifacts", *[str(Path(value).expanduser().resolve()) for value in args.result_artifacts]]
+                if args.result_artifacts
+                else []
+            ),
             "--output-dir",
             str(output_dir / "pipeline"),
         ],
