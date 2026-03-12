@@ -62,6 +62,24 @@ def render_claims(topic: str) -> str:
 
 def topic_profile(topic: str) -> dict[str, str]:
     lowered = topic.lower()
+    if any(
+        token in lowered
+        for token in ["openclaw", "manipulation", "robot", "robotic", "embodied", "long-horizon"]
+    ):
+        return {
+            "positioning_target": "relevant manipulation benchmarks, embodied-control systems, and long-horizon robotics settings",
+            "positioning_evidence": "verified benchmark pages, robotics papers, embodiment notes, and task-overlap summaries",
+            "positioning_risk": "benchmark mismatch, embodiment mismatch, or overstating transfer across robot setups",
+            "positioning_scope": "only for overlapping manipulation tasks, robot setups, and evaluation protocols",
+            "evaluation_focus": "task horizon, embodiment fit, baseline fairness, metric definitions, and result provenance",
+            "evaluation_evidence": "benchmark definitions, embodiment notes, baseline set, reviewed result artifacts, and task-scope notes",
+            "evaluation_risk": "unsupported robotics benchmark framing or overbroad manipulation claims",
+            "evaluation_scope": "applies only after benchmark-fit and embodiment-fit review",
+            "comparative_condition": "reviewed manipulation results and direct benchmark-aligned baselines support it",
+            "comparative_evidence": "reviewed result artifact, manipulation metrics, direct baselines, and embodiment-matched evaluation evidence",
+            "comparative_risk": "unsupported long-horizon manipulation performance claim",
+            "comparative_scope": "blocked until direct benchmark-fit and embodiment-fit evidence exists",
+        }
     if any(token in lowered for token in ["browser", "browsing", "web"]):
         return {
             "positioning_target": "relevant browsing-agent benchmarks and prior systems",

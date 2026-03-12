@@ -79,7 +79,8 @@ def main() -> int:
         print("No queries available. Provide --topic or --plan.", file=sys.stderr)
         return 1
 
-    results = search_queries(queries, args.limit)
+    topic_terms = extract_topic_terms([args.topic]) if args.topic else extract_topic_terms(queries)
+    results = search_queries(queries, args.limit, topic_terms)
     output = render_source_list(args.topic or "Topic search", queries, results)
     path = Path(args.output).expanduser().resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,10 +113,9 @@ def collect_queries(topic: str | None, plan_path: str | None) -> list[str]:
     return deduped
 
 
-def search_queries(queries: list[str], limit: int) -> list[dict[str, str]]:
+def search_queries(queries: list[str], limit: int, topic_terms: set[str]) -> list[dict[str, str]]:
     seen_url: set[str] = set()
     best_by_title: dict[str, dict[str, str]] = {}
-    topic_terms = extract_topic_terms(queries)
 
     for query in queries:
         for result in search_sources(query):
@@ -152,6 +152,26 @@ def search_sources(query: str) -> list[dict[str, str]]:
 def expand_topic_queries(topic: str) -> list[str]:
     lowered = topic.lower()
     queries: list[str] = []
+    if any(
+        token in lowered
+        for token in ["openclaw", "manipulation", "robot", "robotic", "embodied", "long-horizon"]
+    ):
+        queries.extend(
+            [
+                f"{topic} RLBench",
+                f"{topic} CALVIN benchmark",
+                f"{topic} ManiSkill benchmark",
+                f"{topic} RoboCasa benchmark",
+                f"{topic} long-horizon manipulation benchmark",
+                f"{topic} embodied manipulation evaluation",
+                "long-horizon manipulation benchmark",
+                "robotic manipulation benchmark",
+                "RLBench manipulation benchmark",
+                "CALVIN long-horizon manipulation benchmark",
+                "ManiSkill manipulation benchmark",
+                "RoboCasa manipulation benchmark",
+            ]
+        )
     if any(token in lowered for token in ["browser", "browsing", "web agent", "browser agent"]):
         queries.extend(
             [

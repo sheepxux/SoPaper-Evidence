@@ -10,8 +10,15 @@
 | browser agent benchmark evaluation | A small number of relevant sources are found, but benchmark coverage is still narrow. | The source list should consistently include broader primary benchmark anchors such as WebArena-style evaluation sources when they exist. | Topic search now has stricter relevance filters, but primary-source coverage is still dependent on coarse query expansion. | Improve benchmark-specific query planning and add host-aware ranking for benchmark pages and repos. | P2 |
 | All topic-first runs | Gap triage is useful, but many runs stop at `source verification` because fetched notes are only page-level verified. | The pipeline should produce more reviewed-ready source notes with clearer candidate facts and benchmark/task definitions. | `verify_source_notes.py` is intentionally conservative and only validates page-level facts. | Add a second pass that extracts benchmark definitions, task framing, and metric snippets for human review. | P2 |
 
+## 2026-03-12 follow-up
+
+- OpenClaw rerun after robotics/manipulation query expansion now returns benchmark-style sources instead of an empty source list.
+- The improved OpenClaw source list includes CALVIN, FurnitureBench, LoHoRavens, VLABench, and IKEA Furniture Assembly environment pages.
+- The OpenClaw claim map now reaches `partial` for positioning and evaluation framing claims, which is the intended intermediate state before reviewed benchmark notes exist.
+- The next remaining bottleneck is no longer source recall for OpenClaw; it is stronger statement extraction from fetched robotics benchmark notes.
+
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
-- Search quality is acceptable for browser-agent themes and still weak for OpenClaw/robotics and code-retrieval citation themes.
+- Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and still weak for code-retrieval citation themes.
 - The current bottleneck is no longer pipeline stability; it is source recall and statement quality.
