@@ -129,13 +129,13 @@ def write_summary(
             "## Review checklist",
             "",
             "- Replace placeholder `TODO:` statements in the ledger with reviewed summaries.",
-            "- Verify all external sources before using them for paper claims.",
+            "- Verify all external sources before using them for research claims.",
             "- Remove or narrow unsupported claims in the claim map.",
-            "- Resolve blocker and major gaps before drafting paper text.",
+            "- Resolve blocker and major gaps before drafting downstream text.",
             "",
             "## Next step",
             "",
-            "After reviewing these drafts, continue with the evidence brief, related work matrix, and paper outline workflow.",
+            "After reviewing these drafts, continue with the evidence brief, related work matrix, and downstream outline workflow.",
             "",
         ]
     )

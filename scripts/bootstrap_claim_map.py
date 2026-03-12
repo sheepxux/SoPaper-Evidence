@@ -21,6 +21,7 @@ class EvidenceEntry:
     statement: str
     classification: str
     source_title: str
+    source_type: str
 
 
 @dataclass
@@ -140,6 +141,7 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
     current_statement = ""
     current_classification = "unverified"
     current_source_title = ""
+    current_source_type = "other"
 
     for line in text.splitlines():
         id_match = ID_RE.match(line)
@@ -151,12 +153,14 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                         statement=current_statement,
                         classification=current_classification,
                         source_title=current_source_title,
+                        source_type=current_source_type,
                     )
                 )
             current_id = id_match.group(1)
             current_statement = ""
             current_classification = "unverified"
             current_source_title = ""
+            current_source_type = "other"
             continue
 
         field_match = FIELD_RE.match(line)
@@ -169,6 +173,8 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                 current_classification = value
             elif field == "source_title":
                 current_source_title = value
+            elif field == "source_type":
+                current_source_type = value
 
     if current_id:
         entries.append(
@@ -177,6 +183,7 @@ def parse_ledger(text: str) -> list[EvidenceEntry]:
                 statement=current_statement,
                 classification=current_classification,
                 source_title=current_source_title,
+                source_type=current_source_type,
             )
         )
 
@@ -187,7 +194,7 @@ def render_claim_map(claims: list[ClaimEntry], evidence: list[EvidenceEntry]) ->
     lines = [
         "# Claim-to-Evidence Map Draft",
         "",
-        "This draft was generated automatically. Review every suggested match before using it in paper writing.",
+        "This draft was generated automatically. Review every suggested match before using it in downstream research work.",
         "",
         "## Major claims",
         "",
@@ -225,6 +232,8 @@ def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -
     claim_tokens = tokenize(claim.text)
     claim_type_tokens = tokenize(claim.claim_type)
     scored: list[MatchCandidate] = []
+    comparative = is_comparative_claim(claim)
+    preferred_types = preferred_source_types(claim)
 
     for entry in evidence:
         if not is_placeholder_statement(entry.statement):
@@ -232,14 +241,23 @@ def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -
             overlap = len(claim_tokens & statement_tokens)
             if overlap > 0:
                 type_boost = len(claim_type_tokens & statement_tokens)
-                scored.append(MatchCandidate(entry=entry, score=overlap * 10 + type_boost * 3, basis="statement"))
+                score = overlap * 10 + type_boost * 3 + classification_weight(entry.classification)
+                if entry.source_type in preferred_types:
+                    score += 4
+                if comparative and entry.classification == "project_evidence":
+                    score += 6
+                scored.append(MatchCandidate(entry=entry, score=score, basis="statement"))
                 continue
 
         title_tokens = tokenize(entry.source_title)
         title_overlap = len(claim_tokens & title_tokens)
-        if title_overlap > 0:
+        minimum_overlap = 2 if comparative else 1
+        if title_overlap >= minimum_overlap:
             type_boost = len(claim_type_tokens & title_tokens)
-            scored.append(MatchCandidate(entry=entry, score=title_overlap + type_boost, basis="title"))
+            score = title_overlap + type_boost
+            if entry.source_type in preferred_types:
+                score += 2
+            scored.append(MatchCandidate(entry=entry, score=score, basis="title"))
 
     scored.sort(key=lambda item: (-item.score, item.entry.evidence_id))
     return scored
@@ -260,13 +278,37 @@ def suggest_status(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
 def suggest_note(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "No matching evidence found. Review the claim wording or add supporting sources."
-    if claim.claim_type == "comparative result":
+    if is_comparative_claim(claim):
         return "Potential leads exist, but comparative-result claims still require reviewed result evidence and a fair baseline set."
     if all(match.basis == "title" for match in matches[:3]):
         return "Potential title-level leads exist, but no reviewed evidence statement supports this claim yet."
     if all(match.entry.classification == "unverified" for match in matches[:3]):
         return "Potential matches exist, but all suggested evidence is still unverified."
     return "Review suggested evidence ids and tighten the claim wording if support is weak."
+
+
+def is_comparative_claim(claim: ClaimEntry) -> bool:
+    lowered = f"{claim.claim_type} {claim.text}".lower()
+    return any(token in lowered for token in ["comparative", "improves", "outperforms", "better than", "strong baselines"])
+
+
+def preferred_source_types(claim: ClaimEntry) -> set[str]:
+    lowered = f"{claim.claim_type} {claim.text}".lower()
+    if any(token in lowered for token in ["benchmark", "position", "positioning", "dataset"]):
+        return {"benchmark", "dataset", "paper", "official_doc"}
+    if any(token in lowered for token in ["result", "improves", "outperforms", "baseline"]):
+        return {"local_result", "paper", "benchmark"}
+    return {"paper", "benchmark", "official_doc", "local_result"}
+
+
+def classification_weight(classification: str) -> int:
+    if classification == "verified_fact":
+        return 8
+    if classification == "project_evidence":
+        return 5
+    if classification == "inference":
+        return 2
+    return 0
 
 
 def tokenize(value: str) -> set[str]:
@@ -288,6 +330,9 @@ def tokenize(value: str) -> set[str]:
         "example",
         "repository",
         "listing",
+        "internal",
+        "current",
+        "using",
     }
     return {
         token

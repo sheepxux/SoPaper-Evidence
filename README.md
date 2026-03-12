@@ -36,6 +36,7 @@ Sopaper Evidence is built around a stricter workflow:
 - lightweight automation for evidence ledger drafting
 - lightweight automation for claim map bootstrapping
 - lightweight automation for evidence gap triage
+- structured note and result-artifact extraction that reduces placeholder-only drafts
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging
 - a repository that can act as the public source of truth
@@ -202,6 +203,8 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 1. build an evidence ledger draft
 2. bootstrap a claim-to-evidence map
 3. triage blocker / major / minor evidence gaps
+
+Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `partial` without weakening the evidence rules.
 
 See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
 

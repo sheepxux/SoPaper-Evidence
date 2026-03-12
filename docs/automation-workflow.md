@@ -20,6 +20,7 @@ python3 scripts/build_evidence_ledger.py \
 Output:
 
 - a first-pass ledger with `E01`, `E02`, and other evidence ids
+- structured source notes and result artifacts can seed non-placeholder statements
 
 ### 2. Bootstrap a claim map draft
 
@@ -33,6 +34,7 @@ python3 scripts/bootstrap_claim_map.py \
 Output:
 
 - a first-pass claim-to-evidence table
+- reviewed local result artifacts can raise comparative claims from `unsupported` to `partial`
 
 ### 3. Triage evidence gaps
 
