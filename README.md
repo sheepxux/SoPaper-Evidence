@@ -2,6 +2,8 @@
 
 ![Sopaper Evidence cover](docs/assets/cover.png)
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Current version: `v0.6.1`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
