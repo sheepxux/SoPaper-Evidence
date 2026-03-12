@@ -22,7 +22,7 @@ python3 scripts/fetch_external_sources.py \
 Output:
 
 - one structured source-note draft per fetched URL
-- titles, access dates, and directly observed page metadata
+- titles, access dates, directly observed page metadata, and candidate facts
 - verification status left in a review-required state until a human upgrades it
 
 ### 1. Build an evidence ledger draft

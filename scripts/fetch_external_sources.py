@@ -24,12 +24,18 @@ class MetaParser(HTMLParser):
         self.title = ""
         self.in_title = False
         self.meta: dict[str, str] = {}
+        self.in_script = False
+        self.in_style = False
+        self.in_paragraph = False
+        self.current_paragraph: list[str] = []
+        self.paragraphs: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {key.lower(): value or "" for key, value in attrs}
-        if tag.lower() == "title":
+        lowered = tag.lower()
+        if lowered == "title":
             self.in_title = True
-        if tag.lower() == "meta":
+        if lowered == "meta":
             name = attr_map.get("name", "").lower()
             prop = attr_map.get("property", "").lower()
             content = attr_map.get("content", "").strip()
@@ -37,14 +43,42 @@ class MetaParser(HTMLParser):
                 self.meta[name] = content
             if prop and content:
                 self.meta[prop] = content
+        if lowered == "script":
+            self.in_script = True
+        if lowered == "style":
+            self.in_style = True
+        if lowered in {"p", "li", "article", "section", "main", "div"}:
+            self.in_paragraph = True
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == "title":
+        lowered = tag.lower()
+        if lowered == "title":
             self.in_title = False
+        if lowered == "script":
+            self.in_script = False
+        if lowered == "style":
+            self.in_style = False
+        if lowered in {"p", "li", "article", "section", "main", "div"}:
+            self.flush_paragraph()
+            self.in_paragraph = False
 
     def handle_data(self, data: str) -> None:
         if self.in_title:
             self.title += data
+        if self.in_script or self.in_style:
+            return
+        if self.in_paragraph:
+            cleaned = clean_text(data)
+            if cleaned:
+                self.current_paragraph.append(cleaned)
+
+    def flush_paragraph(self) -> None:
+        if not self.current_paragraph:
+            return
+        paragraph = clean_text(" ".join(self.current_paragraph))
+        self.current_paragraph = []
+        if len(paragraph) >= 50:
+            self.paragraphs.append(paragraph)
 
 
 def parse_args() -> argparse.Namespace:
@@ -142,6 +176,7 @@ def fetch_note(url: str, *, timeout: int) -> dict[str, str]:
 
     parser = MetaParser()
     parser.feed(raw)
+    parser.flush_paragraph()
 
     title = clean_text(
         parser.meta.get("citation_title")
@@ -156,23 +191,24 @@ def fetch_note(url: str, *, timeout: int) -> dict[str, str]:
     )
     source_type = guess_external_source_type(url, content_type)
     access_date = datetime.now(timezone.utc).date().isoformat()
-    facts = []
-    if title:
-        facts.append(f'Fetched page title: "{title}".')
-    if description:
-        facts.append(f"Meta description: {description}")
-    if source_type == "paper" and "arxiv.org" in urlparse(url).netloc.lower():
-        facts.append("Source host is arXiv, which is usually a primary paper distribution channel.")
+    paragraphs = summarize_paragraphs(parser.paragraphs)
+    task = infer_task(title, description, paragraphs)
+    metrics = infer_metrics(description, paragraphs)
+    relevance = infer_relevance(source_type, task, metrics)
+    comparable = infer_comparable_scope(source_type)
+    facts = build_candidate_facts(title, description, paragraphs, source_type)
 
     return {
         "title": title or guess_title_from_url(url),
         "url": url,
         "source_type": source_type,
         "access_date": access_date,
-        "facts": " ".join(facts) if facts else "TODO: add reviewed facts from the fetched source.",
-        "relevance": "TODO: explain why this fetched source matters for the current evidence pack.",
-        "comparable": "TODO: state whether the source is directly comparable, partially comparable, or only contextual.",
-        "limits": "TODO: state scope limits, benchmark mismatch risk, or unresolved verification gaps.",
+        "task": task,
+        "metrics": metrics,
+        "facts": facts,
+        "relevance": relevance,
+        "comparable": comparable,
+        "limits": infer_limits(source_type, paragraphs),
         "verification": "fetched-primary-review-required",
     }
 
@@ -183,7 +219,9 @@ def render_failure_note(url: str, error: str) -> dict[str, str]:
         "url": url,
         "source_type": "other",
         "access_date": datetime.now(timezone.utc).date().isoformat(),
-        "facts": f"TODO: fetch failed with error: {error}",
+        "task": "TODO",
+        "metrics": "TODO",
+        "facts": [f"TODO: fetch failed with error: {error}"],
         "relevance": "TODO: retry fetch or review manually.",
         "comparable": "unknown",
         "limits": "fetch failed; source content not reviewed.",
@@ -205,8 +243,8 @@ def render_note(note: dict[str, str]) -> str:
             f"- Source type: {note['source_type']}",
             f"- Locator: {note['url']}",
             f"- Access date: {note['access_date']}",
-            "- Task: TODO",
-            "- Metrics: TODO",
+            f"- Task: {note['task']}",
+            f"- Metrics: {note['metrics']}",
             f"- Verification status: {note['verification']}",
             "",
             "## Why it matters",
@@ -216,7 +254,7 @@ def render_note(note: dict[str, str]) -> str:
             "",
             "## Key facts",
             "",
-            f"- Fact: {note['facts']}",
+            *[f"- Fact: {fact}" for fact in note["facts"]],
             "",
             "## Limits",
             "",
@@ -240,7 +278,11 @@ def guess_external_source_type(locator: str, content_type: str) -> str:
         return "paper"
     if "github.com" in host or "gitlab.com" in host:
         return "repo"
+    if any(token in host for token in ["readthedocs.io", "docs.", "documentation"]):
+        return "official_doc"
     if any(token in host for token in ["paperswithcode.com", "huggingface.co"]):
+        return "benchmark"
+    if any(token in path for token in ["benchmark", "leaderboard", "eval"]):
         return "benchmark"
     if any(token in path for token in ["/dataset", "/datasets"]):
         return "dataset"
@@ -265,6 +307,94 @@ def slugify(value: str) -> str:
 def clean_text(value: str) -> str:
     collapsed = re.sub(r"\s+", " ", html.unescape(value or "")).strip()
     return collapsed
+
+
+def summarize_paragraphs(paragraphs: list[str]) -> list[str]:
+    cleaned: list[str] = []
+    for paragraph in paragraphs:
+        normalized = clean_text(paragraph)
+        lowered = normalized.lower()
+        if any(token in lowered for token in ["donate", "privacy policy", "cookie", "terms of use", "we gratefully acknowledge support"]):
+            continue
+        if normalized and normalized not in cleaned:
+            cleaned.append(normalized)
+        if len(cleaned) == 3:
+            break
+    return cleaned
+
+
+def build_candidate_facts(title: str, description: str, paragraphs: list[str], source_type: str) -> list[str]:
+    facts: list[str] = []
+    if title:
+        facts.append(f'Fetched page title: "{title}".')
+    if description:
+        facts.append(f"Meta description: {description}")
+    for paragraph in paragraphs:
+        facts.append(trim_sentence(paragraph))
+    if source_type == "paper" and "arxiv.org" in title.lower():
+        facts.append("Source host is arXiv, which is usually a primary paper distribution channel.")
+    return facts[:3] if facts else ["TODO: add reviewed facts from the fetched source."]
+
+
+def infer_task(title: str, description: str, paragraphs: list[str]) -> str:
+    base = " ".join([title, description, *paragraphs]).lower()
+    if any(token in base for token in ["question answering", "qa"]):
+        return "question answering"
+    if "browser" in base or "web task" in base or "webarena" in base:
+        return "browser agent evaluation"
+    if "benchmark" in base:
+        return "benchmark evaluation"
+    if "documentation" in base or "docs" in base:
+        return "documentation or API guidance"
+    return "TODO"
+
+
+def infer_metrics(description: str, paragraphs: list[str]) -> str:
+    base = " ".join([description, *paragraphs]).lower()
+    metrics: list[str] = []
+    for token in ["success rate", "accuracy", "precision", "recall", "f1", "citation", "completion", "latency"]:
+        if token in base:
+            metrics.append(token)
+    return ", ".join(metrics[:4]) if metrics else "TODO"
+
+
+def infer_relevance(source_type: str, task: str, metrics: str) -> str:
+    if source_type == "paper":
+        return f"This fetched paper may support task framing for {task} and should be reviewed before upgrade."
+    if source_type == "benchmark":
+        return f"This fetched benchmark source may help define evaluation fit for {task} and related metrics such as {metrics}."
+    if source_type == "repo":
+        return "This fetched repository may help verify implementation scope or artifact availability."
+    if source_type == "official_doc":
+        return "This fetched documentation page may help verify definitions, interfaces, or evaluation concepts."
+    return "TODO: explain why this fetched source matters for the current evidence pack."
+
+
+def infer_comparable_scope(source_type: str) -> str:
+    if source_type in {"paper", "benchmark"}:
+        return "potentially comparable after manual review"
+    if source_type in {"repo", "official_doc"}:
+        return "contextual until manually reviewed"
+    return "unknown"
+
+
+def infer_limits(source_type: str, paragraphs: list[str]) -> str:
+    if source_type == "paper":
+        return "Paper content still needs manual reading to confirm exact claims, task fit, and metric alignment."
+    if source_type == "benchmark":
+        return "Benchmark scope and task overlap still need manual review before using it for direct comparisons."
+    if source_type == "repo":
+        return "Repository metadata alone does not prove evaluation results or benchmark performance."
+    if source_type == "official_doc":
+        return "Documentation content may define concepts, but it does not by itself validate comparative claims."
+    return "TODO: state scope limits, benchmark mismatch risk, or unresolved verification gaps."
+
+
+def trim_sentence(value: str) -> str:
+    text = clean_text(value)
+    if len(text) <= 220:
+        return text
+    return text[:217].rstrip() + "..."
 
 
 if __name__ == "__main__":
