@@ -356,6 +356,9 @@ def build_candidate_facts(title: str, description: str, paragraphs: list[str], s
     evaluation_fact = synthesize_evaluation_fact(title, source_type)
     if evaluation_fact:
         facts.append(evaluation_fact)
+    baseline_fact = synthesize_baseline_fact(title, source_type)
+    if baseline_fact:
+        facts.append(baseline_fact)
     if description and not description.lower().startswith("abstract page for arxiv paper"):
         facts.append(f"Meta description: {description}")
     extracted = extract_semantic_facts(title, description, paragraphs, source_type)
@@ -459,6 +462,21 @@ def synthesize_metric_fact(title: str, description: str, paragraphs: list[str]) 
     lowered = " ".join([title, description, *paragraphs]).lower()
     if any(token in lowered for token in ["benchmark", "evaluation"]):
         return "Candidate metric fact: This source likely defines benchmark metrics that still need manual review."
+    return ""
+
+
+def synthesize_baseline_fact(title: str, source_type: str) -> str:
+    lowered = title.lower()
+    if source_type not in {"paper", "benchmark", "repo"}:
+        return ""
+    if any(token in lowered for token in ["manipulation", "robot", "robotic", "embodied"]):
+        return "Candidate baseline fact: This source likely expects embodiment-matched or benchmark-aligned baselines for fair comparison."
+    if any(token in lowered for token in ["code retrieval", "code understanding", "code generation", "translation"]):
+        return "Candidate baseline fact: This source likely expects task-aligned code retrieval or code-task baselines for fair comparison."
+    if any(token in lowered for token in ["browser", "browsing", "web"]):
+        return "Candidate baseline fact: This source likely expects benchmark-aligned browsing-agent baselines for fair comparison."
+    if "benchmark" in lowered:
+        return "Candidate baseline fact: This source likely expects benchmark-aligned baselines for fair comparison."
     return ""
 
 

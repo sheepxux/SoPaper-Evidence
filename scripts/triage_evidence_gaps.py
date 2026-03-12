@@ -172,6 +172,17 @@ def build_gap_rows(claims: list[str], evidence: list[EvidenceEntry]) -> list[dic
     rows: list[dict[str, str]] = []
     verified_count = sum(1 for entry in evidence if entry.classification in {"verified_fact", "project_evidence"})
     unverified_count = sum(1 for entry in evidence if entry.classification == "unverified")
+    project_evidence_count = sum(1 for entry in evidence if entry.classification == "project_evidence")
+    verified_text = " ".join(
+        entry.statement.lower() for entry in evidence if entry.classification in {"verified_fact", "project_evidence"}
+    )
+    comparative_claims = any(
+        token in claim.lower() for claim in claims for token in ["comparative", "improves", "outperforms", "baseline"]
+    )
+    needs_metric_detail = any(
+        token in " ".join(claims).lower()
+        for token in ["metric", "citation quality", "result provenance", "baseline fairness", "evaluation setup"]
+    )
 
     if verified_count == 0:
         rows.append(
@@ -199,16 +210,42 @@ def build_gap_rows(claims: list[str], evidence: list[EvidenceEntry]) -> list[dic
             }
         )
 
-    if any("improves" in claim.lower() or "outperforms" in claim.lower() for claim in claims):
+    if comparative_claims and project_evidence_count == 0:
         rows.append(
             {
                 "severity": "blocker",
-                "category": "baseline quality",
+                "category": "direct result evidence",
+                "blocked_claims": "comparative result claims",
+                "why": "Comparative claims exist, but there is no project_evidence item that captures direct internal result evidence.",
+                "resolve": "Add a reviewed result artifact with metric, scope, and baseline context before keeping comparative claims.",
+                "owner": "experiment owner",
+                "next_step": "Create or import a structured result artifact for the strongest comparative result.",
+            }
+        )
+
+    if comparative_claims and "candidate baseline fact:" not in verified_text:
+        rows.append(
+            {
+                "severity": "blocker",
+                "category": "baseline coverage",
                 "blocked_claims": "comparative performance claims",
-                "why": "Comparative wording appears in the claims set, but fair baseline coverage is not guaranteed by this draft.",
-                "resolve": "Confirm direct baselines, metric fit, and benchmark fit before keeping comparative language.",
+                "why": "Comparative wording appears in the claims set, but the verified evidence does not yet capture explicit baseline expectations.",
+                "resolve": "Confirm direct baselines, baseline fairness, and benchmark fit before keeping comparative language.",
                 "owner": "experiment owner",
                 "next_step": "Review the baseline set against the benchmark-baseline checklist.",
+            }
+        )
+
+    if needs_metric_detail and "candidate metric fact:" not in verified_text:
+        rows.append(
+            {
+                "severity": "major",
+                "category": "metric definition",
+                "blocked_claims": "evaluation framing and comparison claims",
+                "why": "The current verified evidence does not yet capture explicit metric definitions or metric-oriented evaluation facts.",
+                "resolve": "Add reviewed metric definitions from benchmark pages, papers, or result artifacts.",
+                "owner": "paper lead",
+                "next_step": "Extract the top metric definitions and add them as reviewed facts before drafting evaluation text.",
             }
         )
 

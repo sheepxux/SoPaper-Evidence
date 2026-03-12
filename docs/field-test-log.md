@@ -24,6 +24,8 @@
 - Retrieval/citation positioning claims now reach `supported` on clean benchmark evidence, while comparative-result claims remain capped at `partial`.
 - After combining benchmark/task facts with evaluation facts in the ledger, verified statements now carry both task-definition and evaluation-setup signals.
 - The pipeline now reaches a stable pattern on both OpenClaw and retrieval/citation topics: positioning support can become `supported`, while evaluation/comparative claims remain conservatively constrained without direct result evidence.
+- Gap reports now distinguish between `direct result evidence`, `metric definition`, and `source verification` instead of collapsing everything into a generic blocker.
+- The next meaningful upgrade for comparative claims is no longer generic search improvement; it is adding structured result artifacts or stronger metric extraction from primary sources.
 
 ## Current conclusion
 

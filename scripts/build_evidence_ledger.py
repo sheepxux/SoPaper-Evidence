@@ -305,9 +305,13 @@ def build_local_statement(path: Path, title: str, source_type: str, structured: 
             (item for item in parts if item.lower().startswith("candidate metric fact:")),
             None,
         )
-        selected = [item for item in [benchmark_fact, evaluation_fact, metric_fact] if item]
+        baseline_fact = next(
+            (item for item in parts if item.lower().startswith("candidate baseline fact:")),
+            None,
+        )
+        selected = [item for item in [benchmark_fact, evaluation_fact, metric_fact, baseline_fact] if item]
         if selected:
-            return " ".join(item.rstrip(".") + "." for item in selected[:2])
+            return " ".join(item.rstrip(".") + "." for item in selected[:3])
         return parts[0].rstrip(".") + "."
 
     task = structured.get("task")
