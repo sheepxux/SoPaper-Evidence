@@ -11,6 +11,22 @@ If the inputs still contain raw URLs, fetch structured source-note drafts before
 
 ## Pipeline
 
+### Topic-first entry point
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "browser agent benchmark evaluation" \
+  --output-dir output/topic-browser-agent
+```
+
+Output:
+
+- a search-plan draft
+- a searched source list
+- a generated structured claims draft
+- fetched source-note drafts
+- the downstream ledger / claim map / gap report outputs
+
 ### 0. Fetch external source notes from URLs
 
 ```bash

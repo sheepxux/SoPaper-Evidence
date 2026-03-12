@@ -239,7 +239,9 @@ def guess_local_classification(path: Path, source_type: str, structured: dict[st
 
 def looks_like_result_artifact(path: Path) -> bool:
     lowered_name = path.name.lower()
-    if any(token in lowered_name for token in ["result", "metric", "benchmark", "ablation", "artifact"]):
+    if any(token in lowered_name for token in ["result", "ablation", "artifact"]) and path.suffix.lower() not in {".md", ".txt"}:
+        return True
+    if path.suffix.lower() not in {".md", ".txt"} and any(token in lowered_name for token in ["metric", "benchmark"]):
         return True
     if path.suffix.lower() not in {".md", ".txt"}:
         return False

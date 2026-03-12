@@ -107,8 +107,13 @@ Use [assets/claim-evidence-map-template.md](assets/claim-evidence-map-template.m
 Use [assets/related-work-matrix-template.md](assets/related-work-matrix-template.md) when comparing papers, baselines, and benchmark coverage.
 Use [assets/experiment-gap-report-template.md](assets/experiment-gap-report-template.md) when the task requires prioritizing missing experiments before drafting.
 Use `scripts/build_evidence_ledger.py` when the user already has markdown notes or source lists and needs a first-pass evidence ledger.
+Use `scripts/generate_search_plan.py` when the user starts only with a topic and needs a first-pass evidence search plan.
+Use `scripts/generate_topic_claims.py` when the user starts only with a topic and needs a cautious structured claims draft.
+Use `scripts/search_external_sources.py` when the user needs a first-pass source list from a topic or search plan.
+Use `scripts/fetch_external_sources.py` when raw URLs should be converted into structured source-note drafts before review.
 Use `scripts/bootstrap_claim_map.py` when the user already has a claims list and a ledger draft and needs a first-pass claim map.
 Use `scripts/triage_evidence_gaps.py` when the user needs a first-pass blocker/major/minor gap report from the current claims and evidence ledger.
+Use `scripts/run_topic_evidence_pipeline.py` when the user wants the full topic-driven workflow from theme to search plan, source list, fetched notes, ledger, claim map, and gap report.
 Use `scripts/validate_input_bundle.py` when the user has partially structured inputs and needs a quick schema check before running the pipeline.
 
 ### 6. Support writing

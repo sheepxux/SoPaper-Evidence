@@ -139,10 +139,14 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [claims-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/claims-template.md): template for structured candidate claims
 - [result-artifact-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/result-artifact-template.md): template for structured internal result artifacts
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
+- [generate_search_plan.py](/Users/xu/Desktop/Sopaper/scripts/generate_search_plan.py): turn a topic into a first-pass search plan
+- [generate_topic_claims.py](/Users/xu/Desktop/Sopaper/scripts/generate_topic_claims.py): turn a topic into a cautious structured claims draft
+- [search_external_sources.py](/Users/xu/Desktop/Sopaper/scripts/search_external_sources.py): search the web for candidate papers, benchmarks, repos, and docs from a topic or search plan
 - [fetch_external_sources.py](/Users/xu/Desktop/Sopaper/scripts/fetch_external_sources.py): fetch external URLs into structured source-note drafts with access dates, candidate facts, and review-required verification status
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
+- [run_topic_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_topic_evidence_pipeline.py): run the topic-driven pipeline from theme to search plan, source list, fetched notes, ledger, claim map, and gap report
 - [validate_input_bundle.py](/Users/xu/Desktop/Sopaper/scripts/validate_input_bundle.py): validate structured inputs before running the pipeline
 
 ## Example workflow
@@ -209,6 +213,8 @@ Structured source notes and result artifacts now seed stronger draft statements,
 
 When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts with page metadata and candidate facts before ledger construction.
 
+If the user starts only with a topic or paper theme, the topic-driven pipeline can generate a search plan, candidate claims, a searched source list, fetched source-note drafts, and the downstream evidence pack.
+
 See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
 
 If you want one command instead of three, run:
@@ -227,6 +233,14 @@ This command now produces four files:
 - `draft-ledger.md`
 - `draft-claim-map.md`
 - `draft-gap-report.md`
+
+For a topic-first workflow, run:
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "citation-grounded retrieval for code assistants" \
+  --output-dir output/topic-rag-citations
+```
 
 Example:
 
