@@ -20,9 +20,11 @@
 - The next remaining bottleneck is no longer source recall for OpenClaw; it is richer benchmark-definition and metric extraction for stronger non-comparative support.
 - Retrieval/citation rerun after query-aware filtering no longer mixes in obviously irrelevant retrieval papers from non-AI domains.
 - Retrieval/citation source recall is cleaner but still narrow; the current pipeline mainly surfaces xCodeEval-style benchmark results and still needs broader citation-grounded benchmark recall.
+- After stronger source-note statement extraction, retrieval/citation notes now promote benchmark/task facts such as \"This source appears to define a code retrieval benchmark\" instead of relying on page titles alone.
+- Retrieval/citation positioning claims now reach `supported` on clean benchmark evidence, while comparative-result claims remain capped at `partial`.
 
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
 - Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and cleaner but still narrow for code-retrieval citation themes.
-- The current bottleneck is no longer pipeline stability; it is source recall and statement quality.
+- The current bottleneck is no longer pipeline stability; it is broader source recall and richer benchmark/metric extraction.

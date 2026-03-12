@@ -121,10 +121,13 @@ def search_queries(queries: list[str], limit: int, topic_terms: set[str]) -> lis
         for result in search_sources(query):
             if should_skip_result(result["url"]):
                 continue
-            if not query_semantic_gate(query, result["title"], result["url"]):
-                continue
             overlap = result_overlap(result["title"], result["url"], topic_terms)
-            if topic_terms and overlap < minimum_overlap(result["url"]):
+            result_tokens = tokenize_text(result["title"]) | tokenize_text(canonicalize_url(result["url"]))
+            if "code" in topic_terms and "code" not in result_tokens:
+                continue
+            if not query_semantic_gate(query, result["title"], result["url"], overlap, topic_terms):
+                continue
+            if topic_terms and overlap < minimum_overlap(result["url"], result["title"]):
                 continue
             canonical = canonicalize_url(result["url"])
             if canonical in seen_url:
@@ -190,9 +193,11 @@ def expand_topic_queries(topic: str) -> list[str]:
                 f"{topic} grounded generation retrieval benchmark",
                 "code information retrieval benchmark",
                 "code retrieval benchmark",
+                "code retrieval evaluation benchmark",
                 "citation-grounded QA benchmark",
+                "citation-grounded code benchmark",
+                "code assistant retrieval benchmark",
                 "grounded generation citation benchmark",
-                "retrieval evaluation benchmark",
             ]
         )
     return queries
@@ -214,23 +219,36 @@ def result_overlap(title: str, url: str, topic_terms: set[str]) -> int:
     return len(matched)
 
 
-def minimum_overlap(url: str) -> int:
+def minimum_overlap(url: str, title: str) -> int:
     host = urlparse(url).netloc.lower()
     if "github.com" in host:
+        return 1
+    lowered = title.lower()
+    if any(token in lowered for token in ["benchmark", "evaluation", "dataset", "leaderboard"]):
         return 1
     return 2
 
 
-def query_semantic_gate(query: str, title: str, url: str) -> bool:
+def query_semantic_gate(query: str, title: str, url: str, overlap: int, topic_terms: set[str]) -> bool:
     query_tokens = tokenize_text(query)
     title_tokens = tokenize_text(title) | tokenize_text(canonicalize_url(url))
     benchmark_tokens = {"benchmark", "evaluation", "leaderboard", "dataset"}
     repo_tokens = {"repo", "github", "implementation"}
+    host = urlparse(url).netloc.lower()
 
     if query_tokens & benchmark_tokens and not (title_tokens & benchmark_tokens):
         return False
-    if query_tokens & repo_tokens and "github.com" not in urlparse(url).netloc.lower():
+    if query_tokens & repo_tokens and "github.com" not in host:
         return False
+    if "github.com" in host:
+        if len(title) > 260:
+            return False
+        if query_tokens & benchmark_tokens and overlap < 2:
+            return False
+        if "code" in topic_terms and "code" not in title_tokens:
+            return False
+        if "citation" in topic_terms and "citation" not in title_tokens and "grounded" not in title_tokens:
+            return False
     return True
 
 

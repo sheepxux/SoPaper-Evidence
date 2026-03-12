@@ -412,12 +412,16 @@ def extract_semantic_facts(
 def synthesize_title_fact(title: str, source_type: str) -> str:
     lowered = title.lower()
     if source_type in {"paper", "benchmark"}:
+        if "benchmark" in lowered and any(token in lowered for token in ["browser", "browsing", "web"]):
+            return "Candidate benchmark/task fact: This source appears to define a browser-agent or web-browsing benchmark."
         if "benchmark" in lowered and "long-horizon" in lowered and any(
             token in lowered for token in ["manipulation", "robot", "robotic"]
         ):
             return "Candidate benchmark/task fact: This source appears to define a long-horizon robotics manipulation benchmark."
         if "benchmark" in lowered and "retrieval" in lowered and "code" in lowered:
             return "Candidate benchmark/task fact: This source appears to define a code retrieval benchmark."
+        if "benchmark" in lowered and any(token in lowered for token in ["code understanding", "code generation", "translation"]):
+            return "Candidate benchmark/task fact: This source appears to define a multi-task code benchmark with retrieval relevance."
         if "benchmark" in lowered and "citation" in lowered:
             return "Candidate benchmark/task fact: This source appears to define a citation-grounded benchmark or evaluation setting."
         if "benchmark" in lowered:
@@ -429,6 +433,10 @@ def synthesize_title_fact(title: str, source_type: str) -> str:
 
 def infer_task(title: str, description: str, paragraphs: list[str]) -> str:
     base = " ".join([title, description, *paragraphs]).lower()
+    if any(token in base for token in ["manipulation", "robot", "robotic", "embodied"]):
+        return "robotics manipulation benchmark"
+    if any(token in base for token in ["code retrieval", "code understanding", "code generation"]):
+        return "code retrieval and code-task benchmark"
     if any(token in base for token in ["question answering", "qa"]):
         return "question answering"
     if "browser" in base or "web task" in base or "webarena" in base:
@@ -443,7 +451,19 @@ def infer_task(title: str, description: str, paragraphs: list[str]) -> str:
 def infer_metrics(description: str, paragraphs: list[str]) -> str:
     base = " ".join([description, *paragraphs]).lower()
     metrics: list[str] = []
-    for token in ["success rate", "accuracy", "precision", "recall", "f1", "citation", "completion", "latency"]:
+    for token in [
+        "success rate",
+        "accuracy",
+        "precision",
+        "recall",
+        "f1",
+        "citation",
+        "completion",
+        "latency",
+        "pass@k",
+        "execution",
+        "retrieval",
+    ]:
         if token in base:
             metrics.append(token)
     return ", ".join(metrics[:4]) if metrics else "TODO"
