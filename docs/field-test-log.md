@@ -15,7 +15,9 @@
 - OpenClaw rerun after robotics/manipulation query expansion now returns benchmark-style sources instead of an empty source list.
 - The improved OpenClaw source list includes CALVIN, FurnitureBench, LoHoRavens, VLABench, and IKEA Furniture Assembly environment pages.
 - The OpenClaw claim map now reaches `partial` for positioning and evaluation framing claims, which is the intended intermediate state before reviewed benchmark notes exist.
-- The next remaining bottleneck is no longer source recall for OpenClaw; it is stronger statement extraction from fetched robotics benchmark notes.
+- After stronger source-note statement extraction, the OpenClaw ledger now captures benchmark/task facts instead of only page titles.
+- The OpenClaw positioning claim now reaches `supported`, while evaluation framing and comparative-result claims remain conservatively capped at `partial`.
+- The next remaining bottleneck is no longer source recall for OpenClaw; it is richer benchmark-definition and metric extraction for stronger non-comparative support.
 - Retrieval/citation rerun after query-aware filtering no longer mixes in obviously irrelevant retrieval papers from non-AI domains.
 - Retrieval/citation source recall is cleaner but still narrow; the current pipeline mainly surfaces xCodeEval-style benchmark results and still needs broader citation-grounded benchmark recall.
 

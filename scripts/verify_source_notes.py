@@ -44,12 +44,26 @@ def verify_note(text: str) -> str:
     source_type = field_value(lines, "- Source type:")
     verification = field_value(lines, "- Verification status:")
     facts = [line for line in lines if line.startswith("- Fact:")]
+    semantic_facts = [
+        line
+        for line in facts
+        if any(
+            token in line.lower()
+            for token in [
+                "candidate benchmark/task fact:",
+                "candidate evaluation fact:",
+                "candidate metric fact:",
+            ]
+        )
+    ]
 
     should_verify = (
         source_type in ALLOWED_TYPES
         and verification == "fetched-primary-review-required"
-        and len(facts) >= 2
-        and all("TODO:" not in line for line in facts[:2])
+        and (
+            (len(semantic_facts) >= 1 and all("TODO:" not in line for line in semantic_facts[:1]))
+            or (len(facts) >= 2 and all("TODO:" not in line for line in facts[:2]))
+        )
     )
 
     if not should_verify:

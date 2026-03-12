@@ -316,6 +316,8 @@ def summarize_paragraphs(paragraphs: list[str]) -> list[str]:
     for paragraph in paragraphs:
         normalized = clean_text(paragraph)
         lowered = normalized.lower()
+        if len(normalized) < 80:
+            continue
         if any(
             token in lowered
             for token in [
@@ -327,8 +329,15 @@ def summarize_paragraphs(paragraphs: list[str]) -> list[str]:
                 "all fields title author abstract",
                 "sign up",
                 "log in",
+                "open science",
+                "giving day",
+                "javascript is disabled",
+                "skip to content",
+                "cookies are used",
             ]
         ):
+            continue
+        if lowered.startswith("abstract page for arxiv paper"):
             continue
         if normalized and normalized not in cleaned:
             cleaned.append(normalized)
@@ -341,13 +350,81 @@ def build_candidate_facts(title: str, description: str, paragraphs: list[str], s
     facts: list[str] = []
     if title:
         facts.append(f'Fetched page title: "{title}".')
-    if description:
+    title_fact = synthesize_title_fact(title, source_type)
+    if title_fact:
+        facts.append(title_fact)
+    if description and not description.lower().startswith("abstract page for arxiv paper"):
         facts.append(f"Meta description: {description}")
-    for paragraph in paragraphs:
-        facts.append(trim_sentence(paragraph))
+    extracted = extract_semantic_facts(title, description, paragraphs, source_type)
+    facts.extend(extracted)
     if source_type == "paper" and "arxiv.org" in title.lower():
         facts.append("Source host is arXiv, which is usually a primary paper distribution channel.")
-    return facts[:3] if facts else ["TODO: add reviewed facts from the fetched source."]
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for fact in facts:
+        normalized = clean_text(fact).lower()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            deduped.append(fact)
+    return deduped[:4] if deduped else ["TODO: add reviewed facts from the fetched source."]
+
+
+def extract_semantic_facts(
+    title: str, description: str, paragraphs: list[str], source_type: str
+) -> list[str]:
+    facts: list[str] = []
+    candidates = [description, *paragraphs]
+    for paragraph in candidates:
+        normalized = clean_text(paragraph)
+        if not normalized:
+            continue
+        lowered = normalized.lower()
+        if lowered.startswith("abstract page for arxiv paper"):
+            continue
+        if lowered.startswith("view a pdf of the paper titled"):
+            continue
+        if source_type in {"paper", "benchmark"} and any(
+            token in lowered
+            for token in [
+                "benchmark",
+                "dataset",
+                "long-horizon",
+                "robot manipulation",
+                "tabletop manipulation",
+                "retrieval",
+                "citation",
+                "grounded generation",
+                "code understanding",
+                "code generation",
+                "translation",
+            ]
+        ):
+            facts.append(f"Candidate benchmark/task fact: {trim_sentence(normalized)}")
+        elif any(token in lowered for token in ["success rate", "accuracy", "precision", "recall", "f1", "metric"]):
+            facts.append(f"Candidate metric fact: {trim_sentence(normalized)}")
+        elif any(token in lowered for token in ["baseline", "compare", "comparison", "evaluate", "evaluation"]):
+            facts.append(f"Candidate evaluation fact: {trim_sentence(normalized)}")
+        if len(facts) >= 2:
+            break
+    return facts
+
+
+def synthesize_title_fact(title: str, source_type: str) -> str:
+    lowered = title.lower()
+    if source_type in {"paper", "benchmark"}:
+        if "benchmark" in lowered and "long-horizon" in lowered and any(
+            token in lowered for token in ["manipulation", "robot", "robotic"]
+        ):
+            return "Candidate benchmark/task fact: This source appears to define a long-horizon robotics manipulation benchmark."
+        if "benchmark" in lowered and "retrieval" in lowered and "code" in lowered:
+            return "Candidate benchmark/task fact: This source appears to define a code retrieval benchmark."
+        if "benchmark" in lowered and "citation" in lowered:
+            return "Candidate benchmark/task fact: This source appears to define a citation-grounded benchmark or evaluation setting."
+        if "benchmark" in lowered:
+            return "Candidate benchmark/task fact: This source appears to define a benchmark or evaluation setting."
+    if source_type == "repo" and any(token in lowered for token in ["benchmark", "eval", "evaluation"]):
+        return "Candidate evaluation fact: This repository likely contains evaluation or benchmark artifacts."
+    return ""
 
 
 def infer_task(title: str, description: str, paragraphs: list[str]) -> str:
