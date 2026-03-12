@@ -17,6 +17,8 @@ RESULT_LINK_RE = re.compile(
     r'<a[^>]+class="result__a"[^>]+href="(?P<href>[^"]+)"[^>]*>(?P<title>.*?)</a>',
     re.IGNORECASE | re.DOTALL,
 )
+REQUEST_TIMEOUT = 8
+MAX_QUERIES = 16
 SECONDARY_HOSTS = {
     "theaireport.net",
     "sourcegraph.com",
@@ -110,7 +112,7 @@ def collect_queries(topic: str | None, plan_path: str | None) -> list[str]:
         if query not in seen:
             seen.add(query)
             deduped.append(query)
-    return deduped
+    return deduped[:MAX_QUERIES]
 
 
 def search_queries(queries: list[str], limit: int, topic_terms: set[str]) -> list[dict[str, str]]:
@@ -150,7 +152,6 @@ def search_sources(query: str) -> list[dict[str, str]]:
     results: list[dict[str, str]] = []
     results.extend(search_openalex(query))
     results.extend(search_github_repositories(query))
-    results.extend(search_duckduckgo(query))
     return results
 
 
@@ -270,7 +271,7 @@ def search_openalex(query: str) -> list[dict[str, str]]:
         },
     )
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
             payload = json.loads(response.read().decode("utf-8", errors="replace"))
     except Exception:
         return []
@@ -331,7 +332,7 @@ def search_github_repositories(query: str) -> list[dict[str, str]]:
         },
     )
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
             payload = json.loads(response.read().decode("utf-8", errors="replace"))
     except Exception:
         return []
@@ -360,7 +361,7 @@ def search_duckduckgo(query: str) -> list[dict[str, str]]:
         },
     )
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
             raw = response.read().decode("utf-8", errors="replace")
     except Exception:
         return []

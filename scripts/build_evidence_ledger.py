@@ -293,18 +293,22 @@ def build_local_statement(path: Path, title: str, source_type: str, structured: 
     key_facts = structured.get("key facts:fact") or structured.get("fact")
     if key_facts:
         parts = [item.strip() for item in key_facts.split(";") if item.strip()]
-        preferred = next(
-            (
-                item
-                for item in parts
-                if item.lower().startswith("candidate benchmark/task fact:")
-                or item.lower().startswith("candidate evaluation fact:")
-                or item.lower().startswith("candidate metric fact:")
-            ),
+        benchmark_fact = next(
+            (item for item in parts if item.lower().startswith("candidate benchmark/task fact:")),
             None,
         )
-        chosen = preferred or parts[0]
-        return chosen.rstrip(".") + "."
+        evaluation_fact = next(
+            (item for item in parts if item.lower().startswith("candidate evaluation fact:")),
+            None,
+        )
+        metric_fact = next(
+            (item for item in parts if item.lower().startswith("candidate metric fact:")),
+            None,
+        )
+        selected = [item for item in [benchmark_fact, evaluation_fact, metric_fact] if item]
+        if selected:
+            return " ".join(item.rstrip(".") + "." for item in selected[:2])
+        return parts[0].rstrip(".") + "."
 
     task = structured.get("task")
     metrics = structured.get("metrics")

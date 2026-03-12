@@ -353,10 +353,16 @@ def build_candidate_facts(title: str, description: str, paragraphs: list[str], s
     title_fact = synthesize_title_fact(title, source_type)
     if title_fact:
         facts.append(title_fact)
+    evaluation_fact = synthesize_evaluation_fact(title, source_type)
+    if evaluation_fact:
+        facts.append(evaluation_fact)
     if description and not description.lower().startswith("abstract page for arxiv paper"):
         facts.append(f"Meta description: {description}")
     extracted = extract_semantic_facts(title, description, paragraphs, source_type)
     facts.extend(extracted)
+    metric_fact = synthesize_metric_fact(title, description, paragraphs)
+    if metric_fact:
+        facts.append(metric_fact)
     if source_type == "paper" and "arxiv.org" in title.lower():
         facts.append("Source host is arXiv, which is usually a primary paper distribution channel.")
     deduped: list[str] = []
@@ -428,6 +434,31 @@ def synthesize_title_fact(title: str, source_type: str) -> str:
             return "Candidate benchmark/task fact: This source appears to define a benchmark or evaluation setting."
     if source_type == "repo" and any(token in lowered for token in ["benchmark", "eval", "evaluation"]):
         return "Candidate evaluation fact: This repository likely contains evaluation or benchmark artifacts."
+    return ""
+
+
+def synthesize_evaluation_fact(title: str, source_type: str) -> str:
+    lowered = title.lower()
+    if source_type not in {"paper", "benchmark", "repo"}:
+        return ""
+    if any(token in lowered for token in ["long-horizon", "manipulation", "robot", "robotic"]):
+        return "Candidate evaluation fact: This source likely defines task scope and evaluation setup for long-horizon robotics manipulation."
+    if any(token in lowered for token in ["code retrieval", "code understanding", "code generation", "translation"]):
+        return "Candidate evaluation fact: This source likely defines evaluation setup for code retrieval or closely related code tasks."
+    if any(token in lowered for token in ["browser", "browsing", "web"]):
+        return "Candidate evaluation fact: This source likely defines browsing-task setup or benchmark scope for web-agent evaluation."
+    if "benchmark" in lowered:
+        return "Candidate evaluation fact: This source likely defines benchmark scope or evaluation setup."
+    return ""
+
+
+def synthesize_metric_fact(title: str, description: str, paragraphs: list[str]) -> str:
+    metrics = infer_metrics(description, paragraphs)
+    if metrics != "TODO":
+        return f"Candidate metric fact: This source likely reports or defines metrics related to {metrics}."
+    lowered = " ".join([title, description, *paragraphs]).lower()
+    if any(token in lowered for token in ["benchmark", "evaluation"]):
+        return "Candidate metric fact: This source likely defines benchmark metrics that still need manual review."
     return ""
 
 

@@ -242,6 +242,7 @@ def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -
             if overlap > 0:
                 type_boost = len(claim_type_tokens & statement_tokens)
                 score = overlap * 10 + type_boost * 3 + classification_weight(entry.classification)
+                score += statement_kind_boost(claim, entry.statement)
                 if entry.source_type in preferred_types:
                     score += 4
                 if comparative and entry.classification == "project_evidence":
@@ -321,6 +322,20 @@ def classification_weight(classification: str) -> int:
         return 5
     if classification == "inference":
         return 2
+    return 0
+
+
+def statement_kind_boost(claim: ClaimEntry, statement: str) -> int:
+    lowered_claim = f"{claim.claim_type} {claim.text}".lower()
+    lowered_statement = statement.lower()
+    if "position" in lowered_claim and "candidate benchmark/task fact:" in lowered_statement:
+        return 6
+    if any(token in lowered_claim for token in ["evaluation", "baseline", "metric", "provenance"]) and (
+        "candidate evaluation fact:" in lowered_statement or "candidate metric fact:" in lowered_statement
+    ):
+        return 8
+    if "comparative" in lowered_claim and "candidate metric fact:" in lowered_statement:
+        return 3
     return 0
 
 

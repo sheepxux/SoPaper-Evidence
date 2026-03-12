@@ -22,9 +22,11 @@
 - Retrieval/citation source recall is cleaner but still narrow; the current pipeline mainly surfaces xCodeEval-style benchmark results and still needs broader citation-grounded benchmark recall.
 - After stronger source-note statement extraction, retrieval/citation notes now promote benchmark/task facts such as \"This source appears to define a code retrieval benchmark\" instead of relying on page titles alone.
 - Retrieval/citation positioning claims now reach `supported` on clean benchmark evidence, while comparative-result claims remain capped at `partial`.
+- After combining benchmark/task facts with evaluation facts in the ledger, verified statements now carry both task-definition and evaluation-setup signals.
+- The pipeline now reaches a stable pattern on both OpenClaw and retrieval/citation topics: positioning support can become `supported`, while evaluation/comparative claims remain conservatively constrained without direct result evidence.
 
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
 - Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and cleaner but still narrow for code-retrieval citation themes.
-- The current bottleneck is no longer pipeline stability; it is broader source recall and richer benchmark/metric extraction.
+- The current bottleneck is no longer pipeline stability; it is broader source recall and richer metric/baseline extraction from primary sources.
