@@ -2,7 +2,7 @@
 
 ![Sopaper Evidence cover](docs/assets/cover.png)
 
-Current version: `v0.6.0`
+Current version: `v0.6.1`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
@@ -119,6 +119,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
     ├── agents/openai.yaml
     ├── assets/
     ├── examples/
+    ├── scripts/
     └── references/
 ```
 
@@ -151,6 +152,8 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
 - [run_topic_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_topic_evidence_pipeline.py): run the topic-driven pipeline from theme to search plan, source list, fetched notes, ledger, claim map, and gap report
 - [validate_input_bundle.py](/Users/xu/Desktop/Sopaper/scripts/validate_input_bundle.py): validate structured inputs before running the pipeline
+
+The published skill bundle now includes the helper scripts under `sopaper-evidence/scripts/`, so the ClawHub package is self-contained and matches the runtime instructions in `SKILL.md`.
 
 ## Example workflow
 

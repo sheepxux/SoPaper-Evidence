@@ -14,6 +14,8 @@ Sopaper Evidence is a high-trust research skill built for teams that want ground
 
 This skill is designed for serious research workflows where every important sentence should be defensible under reviewer scrutiny.
 
+Canonical upstream source: [SoPaper-Evidence](https://github.com/sheepxux/SoPaper-Evidence)
+
 ## Key features
 
 - evidence-first workflow
