@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 SCHEMAS = {
-    "source-note": ["## Title", "## Source", "## Why it matters", "## Key facts", "## Limits"],
+    "source-note": ["## Title", "## Source", "Verification status:", "## Why it matters", "## Key facts", "## Limits"],
     "claims": ["- Claim:", "Claim type:", "Current status:"],
     "result-artifact": ["## Artifact", "Artifact type:", "Path:", "Metric:", "Provenance:"],
 }

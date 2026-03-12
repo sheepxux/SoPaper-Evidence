@@ -266,6 +266,10 @@ def match_evidence_for_claim(claim: ClaimEntry, evidence: list[EvidenceEntry]) -
 def suggest_status(claim: ClaimEntry, matches: list[MatchCandidate]) -> str:
     if not matches:
         return "unsupported"
+    if is_comparative_claim(claim):
+        if any(match.basis == "statement" and match.entry.classification in {"project_evidence", "verified_fact"} for match in matches):
+            return "partial"
+        return "unsupported"
     if any(match.basis == "statement" and match.entry.classification == "verified_fact" for match in matches):
         return "supported"
     if any(match.basis == "statement" and match.entry.classification == "project_evidence" for match in matches):

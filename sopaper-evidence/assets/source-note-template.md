@@ -8,8 +8,10 @@
 
 - Source type:
 - Locator:
+- Access date:
 - Task:
 - Metrics:
+- Verification status:
 
 ## Why it matters
 

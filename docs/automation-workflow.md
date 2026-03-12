@@ -2,12 +2,28 @@
 
 Use this workflow when you want to turn rough source notes into a first-pass evidence package with the helper scripts.
 
+If the inputs still contain raw URLs, fetch structured source-note drafts before building the ledger.
+
 ## Inputs
 
 - a markdown file with source links or notes
 - a markdown file with candidate research claims
 
 ## Pipeline
+
+### 0. Fetch external source notes from URLs
+
+```bash
+python3 scripts/fetch_external_sources.py \
+  sopaper-evidence/examples/openclaw-source-list.md \
+  --output-dir output/openclaw-fetched-sources
+```
+
+Output:
+
+- one structured source-note draft per fetched URL
+- titles, access dates, and directly observed page metadata
+- verification status left in a review-required state until a human upgrades it
 
 ### 1. Build an evidence ledger draft
 

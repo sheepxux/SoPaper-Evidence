@@ -109,8 +109,8 @@ def add_source(items_by_key: dict[str, SourceItem], source: SourceItem) -> None:
 def build_local_source(path: Path) -> SourceItem:
     title = extract_local_title(path)
     source_type = guess_local_source_type(path)
-    classification = guess_local_classification(path)
     structured = parse_structured_markdown(path) if path.suffix.lower() in {".md", ".txt"} else {}
+    classification = guess_local_classification(path, source_type, structured)
     return SourceItem(
         title=structured.get("title", title),
         locator=str(path),
@@ -223,10 +223,17 @@ def guess_local_source_type(path: Path) -> str:
     return "local_code"
 
 
-def guess_local_classification(path: Path) -> str:
-    source_type = guess_local_source_type(path)
+def guess_local_classification(path: Path, source_type: str, structured: dict[str, str]) -> str:
+    verification = (
+        structured.get("source:verification status")
+        or structured.get("verification status")
+        or structured.get("verification")
+        or ""
+    ).lower()
     if source_type == "local_result":
         return "project_evidence"
+    if source_type == "note" and "verified" in verification:
+        return "verified_fact"
     return "unverified"
 
 

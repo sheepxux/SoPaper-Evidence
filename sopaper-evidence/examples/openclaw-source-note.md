@@ -8,8 +8,10 @@
 
 - Source type: repo
 - Locator: https://github.com/sheepxux/SoPaper-Evidence
-- Task: evidence-first research workflow for paper writing
+- Access date: 2026-03-12
+- Task: evidence-first research workflow for evidence discovery and citation grounding
 - Metrics: not applicable
+- Verification status: verified
 
 ## Why it matters
 

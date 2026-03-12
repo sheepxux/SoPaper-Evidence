@@ -139,6 +139,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [claims-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/claims-template.md): template for structured candidate claims
 - [result-artifact-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/result-artifact-template.md): template for structured internal result artifacts
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
+- [fetch_external_sources.py](/Users/xu/Desktop/Sopaper/scripts/fetch_external_sources.py): fetch external URLs into structured source-note drafts with access dates and review-required verification status
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
@@ -206,6 +207,8 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 
 Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `partial` without weakening the evidence rules.
 
+When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts before ledger construction.
+
 See [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md) for the end-to-end command sequence.
 
 If you want one command instead of three, run:
@@ -214,6 +217,7 @@ If you want one command instead of three, run:
 python3 scripts/run_evidence_pipeline.py \
   --sources sopaper-evidence/examples/openclaw-source-list.md \
   --claims sopaper-evidence/examples/openclaw-claims.md \
+  --fetch-external \
   --output-dir output/openclaw-pipeline
 ```
 

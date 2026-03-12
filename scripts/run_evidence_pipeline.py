@@ -27,6 +27,11 @@ def parse_args() -> argparse.Namespace:
         help="Markdown file containing candidate claims.",
     )
     parser.add_argument(
+        "--fetch-external",
+        action="store_true",
+        help="Fetch external URLs from the source inputs into structured source-note drafts before building the ledger.",
+    )
+    parser.add_argument(
         "--output-dir",
         default="output/evidence-pipeline",
         help="Directory for generated outputs. Default: output/evidence-pipeline",
@@ -53,6 +58,12 @@ def main() -> int:
             print(f"Missing input: {item}", file=sys.stderr)
         return 1
 
+    generated_notes: list[Path] = []
+    if args.fetch_external:
+        fetched_dir = output_dir / "fetched-sources"
+        generated_notes = run_fetch_external(root, sources, fetched_dir)
+        sources = sources + generated_notes
+
     ledger_path = output_dir / f"{args.prefix}-ledger.md"
     claim_map_path = output_dir / f"{args.prefix}-claim-map.md"
     gap_report_path = output_dir / f"{args.prefix}-gap-report.md"
@@ -78,6 +89,7 @@ def main() -> int:
         ledger_path=ledger_path,
         claim_map_path=claim_map_path,
         gap_report_path=gap_report_path,
+        generated_notes=generated_notes,
     )
 
     print("Pipeline complete.")
@@ -95,6 +107,18 @@ def run_python(script: Path, arguments: list[str]) -> None:
     )
 
 
+def run_fetch_external(root: Path, sources: list[Path], output_dir: Path) -> list[Path]:
+    script = root / "scripts" / "fetch_external_sources.py"
+    result = subprocess.run(
+        [sys.executable, str(script), *[str(path) for path in sources], "--output-dir", str(output_dir)],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 and "No external URLs found." not in result.stderr:
+        raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+    return sorted(output_dir.glob("*.md"))
+
+
 def write_summary(
     *,
     summary_path: Path,
@@ -103,6 +127,7 @@ def write_summary(
     ledger_path: Path,
     claim_map_path: Path,
     gap_report_path: Path,
+    generated_notes: list[Path],
 ) -> None:
     lines = [
         "# Evidence Pipeline Summary",
@@ -116,6 +141,17 @@ def write_summary(
 
     for source in sources:
         lines.append(f"- Source file: `{source}`")
+
+    if generated_notes:
+        lines.extend(
+            [
+                "",
+                "## Fetched source notes",
+                "",
+            ]
+        )
+        for note in generated_notes:
+            lines.append(f"- Generated note: `{note}`")
 
     lines.extend(
         [
