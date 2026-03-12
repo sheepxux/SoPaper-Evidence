@@ -10,7 +10,7 @@ Use these values on the GitHub repository page.
 
 ## Description
 
-Evidence-first research skill for paper writing. Search, verify, and organize real papers, benchmarks, datasets, case studies, and project artifacts without unsupported claims.
+Evidence-first research skill for evidence discovery, source verification, and citation grounding. Search, verify, and organize real papers, benchmarks, datasets, case studies, and project artifacts without unsupported claims.
 
 ## Website
 
@@ -21,7 +21,7 @@ Set this to the primary marketplace page after publication. Until then, leave it
 Add these repository topics:
 
 - research
-- paper-writing
+- citation-grounding
 - evidence
 - literature-review
 - robotics
@@ -31,7 +31,7 @@ Add these repository topics:
 
 ## About blurb
 
-Sopaper Evidence is an evidence-first research workflow for turning projects into paper-ready evidence packs before drafting.
+Sopaper Evidence is an evidence-first research workflow for turning projects into source-grounded evidence packs before downstream drafting.
 
 ## Social preview
 

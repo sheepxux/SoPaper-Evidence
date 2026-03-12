@@ -6,11 +6,11 @@ Use this checklist when publishing Sopaper Evidence to ClawHub or similar skill 
 
 - Name: `Sopaper Evidence`
 - Short description:
-  `Evidence-first research workflow for paper writing. Search, verify, and organize real papers, datasets, benchmarks, case studies, and project artifacts without unsupported claims.`
+  `Evidence-first research workflow for evidence discovery, source verification, and citation grounding. Search, verify, and organize real papers, datasets, benchmarks, case studies, and project artifacts without unsupported claims.`
 - Category suggestion: `Research` or `Productivity`
 - Tags:
   - research
-  - paper-writing
+  - citation-grounding
   - evidence
   - literature-review
   - robotics
@@ -34,7 +34,7 @@ Sopaper Evidence does not invent papers, results, datasets, benchmark wins, or c
 
 ## Listing body
 
-Sopaper Evidence is a high-trust research skill for teams that want paper support without unsupported claims. It searches and organizes real sources first, maps claims to evidence, identifies unsupported conclusions, and only then supports related work, experiment planning, abstracts, and outlines.
+Sopaper Evidence is a high-trust research skill for teams that want grounded research support without unsupported claims. It searches and organizes real sources first, maps claims to evidence, identifies unsupported conclusions, and only then supports related work, experiment planning, abstracts, outlines, and other downstream outputs.
 
 This skill is designed for workflows where every important sentence should be defensible under reviewer scrutiny.
 

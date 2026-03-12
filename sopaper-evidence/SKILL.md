@@ -1,11 +1,11 @@
 ---
 name: sopaper-evidence
-description: Evidence-first research workflow for paper writing. Use when the task requires searching, verifying, and organizing real papers, datasets, benchmarks, case studies, and project artifacts for research writing without fabricating results, citations, or claims.
+description: Evidence-first research workflow for evidence discovery, source verification, and citation grounding. Use when the task requires searching, verifying, and organizing real papers, datasets, benchmarks, case studies, and project artifacts without fabricating results, citations, or claims.
 ---
 
 # Sopaper Evidence
 
-Sopaper Evidence is an evidence-first research skill. Its job is to build a reliable evidence pack before supporting any paper outline, abstract, related work summary, experiment plan, or draft section.
+Sopaper Evidence is an evidence-first research skill. Its job is to build a reliable evidence pack before supporting any downstream paper outline, abstract, related work summary, experiment plan, or draft section.
 
 Version: `v0.6-dev`
 
@@ -153,7 +153,7 @@ See the example set in:
 
 ## Writing constraints
 
-When supporting paper writing:
+When supporting downstream paper writing:
 
 - Tie each major claim to one or more evidence items
 - Avoid precise quantitative wording unless the number is verified

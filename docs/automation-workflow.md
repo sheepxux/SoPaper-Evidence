@@ -5,7 +5,7 @@ Use this workflow when you want to turn rough source notes into a first-pass evi
 ## Inputs
 
 - a markdown file with source links or notes
-- a markdown file with candidate paper claims
+- a markdown file with candidate research claims
 
 ## Pipeline
 
@@ -53,7 +53,7 @@ The unified pipeline also generates a summary file that points to the three draf
 
 ## Review rule
 
-These outputs are drafts. Review and edit them before using them in any paper-writing workflow.
+These outputs are drafts. Review and edit them before using them in any downstream research workflow.
 
 ## Recommended follow-up
 

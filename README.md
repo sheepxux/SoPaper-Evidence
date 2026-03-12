@@ -4,13 +4,13 @@
 
 Current version: `v0.6-dev`
 
-Sopaper Evidence is an evidence-first research skill for paper writing. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before supporting any abstract, related work section, experiment plan, or draft outline.
+Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
-This project is designed for teams that want a paper workflow that is useful under reviewer scrutiny. It does not fabricate results, citations, benchmarks, or claims. If evidence is weak or missing, it reports the gap instead of filling it with confident text.
+This project is designed for teams that need defensible research support under reviewer scrutiny. It does not fabricate results, citations, benchmarks, or claims. If evidence is weak or missing, it reports the gap instead of filling it with confident text.
 
 ## Why it exists
 
-Most writing-oriented research prompts are good at producing paragraphs and bad at preserving truth. That failure mode is unacceptable for serious paper work.
+Most writing-oriented research prompts are good at producing paragraphs and bad at preserving truth. That failure mode is unacceptable for serious research work.
 
 Sopaper Evidence is built around a stricter workflow:
 
@@ -19,13 +19,13 @@ Sopaper Evidence is built around a stricter workflow:
 3. Extract structured evidence
 4. Map claims to evidence
 5. Identify missing experiments and unsupported conclusions
-6. Support writing only after the evidence pack is sound
+6. Support downstream writing only after the evidence pack is sound
 
 ## Who this is for
 
-- research engineers turning projects into papers
+- research engineers turning projects into evidence-backed narratives
 - robotics and embodied systems teams that need fair comparisons
-- founders and labs that want paper support without weak citations or unsupported claims
+- founders and labs that want research support without weak citations or unsupported claims
 - OpenClaw-style projects where method, benchmark, and evidence must stay tightly aligned
 
 ## What you get
@@ -46,7 +46,7 @@ Sopaper Evidence is built around a stricter workflow:
 - Explicit source priority and claim audits
 - Safe handling of uncertainty and missing evidence
 - Useful for OpenClaw, robotics, embodied AI, and adjacent research projects
-- Strong enough to support paper planning without inventing facts
+- Strong enough to support citation-grounded research planning without inventing facts
 
 ## Architecture
 
@@ -59,14 +59,14 @@ flowchart TD
     D --> E["Extract structured evidence"]
     E --> F["Build claim-to-evidence map"]
     F --> G["Identify evidence gaps"]
-    G --> H["Support writing safely"]
-    H --> I["Abstract support points"]
+    G --> H["Produce grounded research outputs"]
+    H --> I["Citation-grounded source notes"]
     H --> J["Related work matrix"]
     H --> K["Experiment plan"]
-    H --> L["Paper outline"]
+    H --> L["Paper outline or brief"]
 ```
 
-The key design choice is that writing sits at the end of the pipeline, not the beginning.
+The key design choice is that grounded evidence work sits at the front of the pipeline, and any writing support stays downstream.
 
 ## How it works
 
@@ -77,7 +77,7 @@ The key design choice is that writing sits at the end of the pipeline, not the b
 5. Convert evidence into structured entries.
 6. Map every serious claim to explicit support.
 7. Report missing evidence before drafting.
-8. Generate only conservative, evidence-backed writing outputs.
+8. Generate only conservative, evidence-backed downstream outputs.
 
 ## Input / Output
 
@@ -96,12 +96,12 @@ The key design choice is that writing sits at the end of the pipeline, not the b
 - related work matrix
 - claim-to-evidence map
 - evidence gap report
-- paper outline built only from supported evidence
+- citation-grounded research outputs built only from supported evidence
 
 ### Example prompt shape
 
 ```text
-Build an evidence pack for OpenClaw. Search real prior work, benchmarks, datasets, and case studies, use local artifacts when available, map claims to evidence, identify unsupported conclusions, and produce a conservative paper outline.
+Build an evidence pack for OpenClaw. Search real prior work, benchmarks, datasets, and case studies, use local artifacts when available, map claims to evidence, identify unsupported conclusions, and produce citation-grounded research outputs.
 ```
 
 ## Repository layout
@@ -127,7 +127,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [source-priority.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/source-priority.md): source quality policy
 - [input-schemas.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/input-schemas.md): recommended structured inputs for source notes, claims, and result artifacts
 - [prior-work-search-playbook.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/prior-work-search-playbook.md): how to search prior work without drifting into weak evidence
-- [openclaw-evidence-playbook.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/openclaw-evidence-playbook.md): OpenClaw-specific evidence workflow for robotics and embodied systems papers
+- [openclaw-evidence-playbook.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/openclaw-evidence-playbook.md): OpenClaw-specific evidence workflow for robotics and embodied systems research
 - [benchmark-baseline-checklist.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/benchmark-baseline-checklist.md): how to validate evaluation fit and baseline quality
 - [evidence-gap-triage.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/references/evidence-gap-triage.md): how to prioritize blockers before drafting
 - [claim-evidence-map-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/claim-evidence-map-template.md): reusable template
@@ -168,7 +168,7 @@ These examples show the intended quality bar:
 - explicit assumptions
 - conservative wording
 - claim-to-evidence traceability
-- clear evidence gaps before paper drafting
+- clear evidence gaps before downstream drafting
 
 ## Showcase
 
@@ -179,9 +179,9 @@ The OpenClaw example chain shows how Sopaper Evidence should be used in practice
 3. convert findings into a conservative evidence pack in [openclaw-evidence-brief.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-evidence-brief.md)
 4. gate all important claims through [openclaw-claim-map.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-claim-map.md)
 5. triage blocker gaps in [openclaw-gap-report.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-gap-report.md)
-6. only then shape a paper-safe structure in [openclaw-paper-outline.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-paper-outline.md)
+6. only then shape a conservative downstream structure in [openclaw-paper-outline.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-paper-outline.md)
 
-This is the intended usage pattern: evidence first, draft support second.
+This is the intended usage pattern: evidence first, downstream drafting second.
 
 ## Quick start
 
@@ -191,7 +191,7 @@ Point the skill at a project and ask it to produce:
 2. a prior-work search plan
 3. a related work matrix
 4. a claim-to-evidence map
-5. a paper outline built only from supported evidence
+5. citation-grounded downstream outputs built only from supported evidence
 
 The default output should stay conservative. If a result, comparison, or citation cannot be defended, the correct output is to mark the gap instead of stretching the claim.
 
@@ -259,7 +259,7 @@ Normal writing prompts optimize for fluent text. Sopaper Evidence optimizes for 
 
 The difference is structural:
 
-- normal prompts often start with drafting
+- normal prompts often start with prose generation
 - Sopaper Evidence starts with source search and evidence verification
 - normal prompts can blur facts, guesses, and missing data
 - Sopaper Evidence separates `verified_fact`, `project_evidence`, `inference`, and `unverified`
@@ -289,11 +289,11 @@ For marketplace descriptions, emphasize:
 - evidence-first research workflow
 - no fabricated results or citations
 - claim-to-evidence mapping
-- useful for OpenClaw-style paper development
+- useful for OpenClaw-style evidence development
 
 ## Quality bar
 
-This project should be judged by whether it prevents bad research writing, not by whether it generates more text.
+This project should be judged by whether it prevents unsupported research claims, not by whether it generates more text.
 
 The correct behavior is:
 
@@ -320,8 +320,8 @@ The correct behavior is:
 ## Suggested GitHub metadata
 
 - Repository name: `sopaper-evidence`
-- Description: `Evidence-first research skill for paper writing. Search, verify, and organize real papers, benchmarks, datasets, case studies, and project artifacts without unsupported claims.`
-- Suggested topics: `research`, `paper-writing`, `evidence`, `literature-review`, `robotics`, `embodied-ai`, `openclaw`, `skills`
+- Description: `Evidence-first research skill for evidence discovery, source verification, and citation grounding. Search, verify, and organize real papers, benchmarks, datasets, case studies, and project artifacts without unsupported claims.`
+- Suggested topics: `research`, `evidence`, `citation-grounding`, `literature-review`, `robotics`, `embodiedai`, `openclaw`, `skills`
 
 ## License
 

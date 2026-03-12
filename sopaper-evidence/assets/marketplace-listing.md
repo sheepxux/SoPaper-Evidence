@@ -6,11 +6,11 @@ Sopaper Evidence
 
 ## Short description
 
-Evidence-first research workflow for paper writing. Search, verify, and organize real papers, datasets, benchmarks, case studies, and project artifacts without fabricating results or citations.
+Evidence-first research workflow for evidence discovery, source verification, and citation grounding. Search, verify, and organize real papers, datasets, benchmarks, case studies, and project artifacts without fabricating results or citations.
 
 ## Full description
 
-Sopaper Evidence is a high-trust research skill built for teams that want paper-writing support without unsupported evidence. It searches and organizes real sources first, maps claims to evidence, identifies unsupported conclusions, and only then supports related work, experiment planning, abstracts, and outlines.
+Sopaper Evidence is a high-trust research skill built for teams that want grounded research support without unsupported evidence. It searches and organizes real sources first, maps claims to evidence, identifies unsupported conclusions, and only then supports related work, experiment planning, abstracts, outlines, and other downstream outputs.
 
 This skill is designed for serious research workflows where every important sentence should be defensible under reviewer scrutiny.
 
@@ -30,7 +30,7 @@ Sopaper Evidence does not invent papers, results, datasets, benchmark wins, or c
 ## Suggested tags
 
 - research
-- paper-writing
+- citation-grounding
 - evidence
 - literature-review
 - robotics
