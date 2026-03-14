@@ -299,6 +299,10 @@ def build_local_statement(path: Path, title: str, source_type: str, structured: 
             f"{metric_fact}{baseline_fact}"
         )
 
+    reviewed_summary = structured.get("reviewed summary:reviewed summary") or structured.get("reviewed summary")
+    if reviewed_summary:
+        return reviewed_summary.rstrip(".") + "."
+
     key_facts = structured.get("key facts:fact") or structured.get("fact")
     if key_facts:
         parts = [item.strip() for item in key_facts.split(";") if item.strip()]

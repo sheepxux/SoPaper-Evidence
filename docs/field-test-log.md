@@ -29,9 +29,11 @@
 - After ingesting a structured OpenClaw result artifact, the ledger now includes a `project_evidence` entry with direct result, metric, and baseline context instead of leaving comparative support entirely to fetched external notes.
 - On the OpenClaw rerun with the result artifact, the `direct result evidence` and `metric definition` gaps disappear, leaving `source verification` and `evaluation scope` as the remaining major issues.
 - Result-artifact ingestion now gives the comparative-result claim a real project-evidence anchor rather than only benchmark-alignment signals from external benchmark pages.
+- After adding reviewed primary-source summaries, verified fetched notes now carry synthesized benchmark/evaluation/baseline statements instead of only page-level facts.
+- The OpenClaw topic-first rerun now produces `reviewed-primary` notes and the ledger uses those reviewed summaries directly, which is a cleaner research-level evidence surface than page metadata alone.
 
 ## Current conclusion
 
 - The topic-driven pipeline is now operational and produces stable outputs.
 - Search quality is acceptable for browser-agent themes, improved for OpenClaw/robotics, and cleaner but still narrow for code-retrieval citation themes.
-- The current bottleneck is no longer pipeline stability; it is broader source recall, deeper primary-source review, and stronger handling of reviewed benchmark/result statements.
+- The current bottleneck is no longer pipeline stability; it is broader source recall, deeper primary-source reading, and stronger handling of explicit metric and benchmark definitions from primary sources.

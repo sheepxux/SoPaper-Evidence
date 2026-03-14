@@ -20,6 +20,7 @@ Canonical upstream source: [SoPaper-Evidence](https://github.com/sheepxux/SoPape
 
 - evidence-first workflow
 - topic-first search, fetch, and conservative verification
+- reviewed primary-source summaries for stronger research-level source grounding
 - source priority and verification rules
 - claim-to-evidence mapping
 - explicit evidence gap reporting

@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-当前版本：`v0.6.1`
+当前版本：`v0.7.0`
 
 Sopaper Evidence 是一个以证据优先为核心的研究型 skill，用于证据发现、来源核验与引用落地。它会在任何下游写作或研究规划开始之前，先搜索、验证并组织真实论文、数据集、benchmark、案例和项目工件。
 
@@ -40,6 +40,7 @@ Sopaper Evidence 的工作流更严格：
 - evidence gap triage 自动草稿生成
 - topic-first 的搜索、抓取、保守验证与 evidence pack 生成
 - 结构化 result artifact 接入，可用于 comparative claim 判断
+- reviewed primary-source summaries，可把外部来源提升到比页面级元信息更强的研究级摘要
 - OpenClaw 端到端示例链路
 - 可用于 GitHub / ClawHub 发布的打包与文案
 
@@ -176,7 +177,7 @@ flowchart TD
 
 结构化 source notes 和 result artifacts 会显著减少 placeholder-only 草稿；当本地 result artifact 包含直接结果、metric 和 baseline 上下文时，comparative claim 可以从 `unsupported` 提升到更高置信度。
 
-如果输入里只有原始 URL，外部抓取工具会先把它们转成结构化 source-note 草稿；保守验证阶段会把足够清晰的页面级事实升级后再进入 ledger。
+如果输入里只有原始 URL，外部抓取工具会先把它们转成结构化 source-note 草稿；保守验证阶段会把足够清晰的来源升级为页面级事实，或进一步合成为 reviewed primary-source summary，再进入 ledger。
 
 如果用户只给一个研究主题，topic-driven pipeline 会自动生成：
 
