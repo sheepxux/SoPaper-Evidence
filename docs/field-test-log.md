@@ -31,6 +31,8 @@
 - Result-artifact ingestion now gives the comparative-result claim a real project-evidence anchor rather than only benchmark-alignment signals from external benchmark pages.
 - After adding reviewed primary-source summaries, verified fetched notes now carry synthesized benchmark/evaluation/baseline statements instead of only page-level facts.
 - The OpenClaw topic-first rerun now produces `reviewed-primary` notes and the ledger uses those reviewed summaries directly, which is a cleaner research-level evidence surface than page metadata alone.
+- Direct CSV and JSON result artifacts now validate and ingest without requiring a handwritten markdown wrapper.
+- The OpenClaw topic-first rerun with `openclaw-results.csv` and `openclaw-results.json` now generates `project_evidence` entries that preserve metric, baseline, and scope signals directly from the raw result files.
 
 ## Current conclusion
 

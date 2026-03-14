@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-当前版本：`v0.7.0`
+当前版本：`v0.8.0`
 
 Sopaper Evidence 是一个以证据优先为核心的研究型 skill，用于证据发现、来源核验与引用落地。它会在任何下游写作或研究规划开始之前，先搜索、验证并组织真实论文、数据集、benchmark、案例和项目工件。
 
@@ -41,6 +41,7 @@ Sopaper Evidence 的工作流更严格：
 - topic-first 的搜索、抓取、保守验证与 evidence pack 生成
 - 结构化 result artifact 接入，可用于 comparative claim 判断
 - reviewed primary-source summaries，可把外部来源提升到比页面级元信息更强的研究级摘要
+- 可直接接入 `.csv / .tsv / .json` 结果工件，不需要先手写 markdown 包装
 - OpenClaw 端到端示例链路
 - 可用于 GitHub / ClawHub 发布的打包与文案
 
@@ -189,6 +190,8 @@ flowchart TD
 
 如果还提供了结构化 result artifacts，同一条 pipeline 也能把它们并入 `project_evidence`，用于 comparative-result gating。
 
+现在这条 result-artifact 链路已经不只支持 markdown 模板，也支持直接接入 `.csv / .tsv / .json` 结果文件，并自动抽 metric、baseline 和 scope 信号。
+
 查看完整命令流程：
 - [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md)
 
@@ -218,6 +221,15 @@ python3 scripts/run_topic_evidence_pipeline.py \
   "OpenClaw long-horizon manipulation benchmark evaluation" \
   --result-artifacts sopaper-evidence/examples/openclaw-result-artifact.md \
   --output-dir output/topic-openclaw
+```
+
+直接使用 CSV 结果工件的 topic-first 示例：
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "OpenClaw long-horizon manipulation benchmark evaluation" \
+  --result-artifacts sopaper-evidence/examples/openclaw-results.csv \
+  --output-dir output/topic-openclaw-csv
 ```
 
 发布到 ClawHub 的 skill bundle 已经包含 `sopaper-evidence/scripts/` 下的 helper scripts，因此线上包与 `SKILL.md` 中的运行说明是一致的。

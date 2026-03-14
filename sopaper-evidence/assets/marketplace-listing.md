@@ -25,6 +25,7 @@ Canonical upstream source: [SoPaper-Evidence](https://github.com/sheepxux/SoPape
 - claim-to-evidence mapping
 - explicit evidence gap reporting
 - structured result-artifact ingestion for stronger comparative claim gating
+- direct csv/json result-artifact ingestion for lower-friction project evidence onboarding
 - conservative writing support
 - useful for OpenClaw-style embodied AI and robotics projects
 

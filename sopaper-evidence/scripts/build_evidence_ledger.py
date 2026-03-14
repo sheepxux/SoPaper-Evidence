@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -109,7 +111,7 @@ def add_source(items_by_key: dict[str, SourceItem], source: SourceItem) -> None:
 def build_local_source(path: Path) -> SourceItem:
     title = extract_local_title(path)
     source_type = guess_local_source_type(path)
-    structured = parse_structured_markdown(path) if path.suffix.lower() in {".md", ".txt"} else {}
+    structured = parse_local_artifact(path, source_type)
     classification = guess_local_classification(path, source_type, structured)
     return SourceItem(
         title=structured.get("title", title),
@@ -171,6 +173,153 @@ def parse_structured_markdown(path: Path) -> dict[str, str]:
         if cleaned:
             flattened[key] = "; ".join(cleaned)
     return flattened
+
+
+def parse_local_artifact(path: Path, source_type: str) -> dict[str, str]:
+    suffix = path.suffix.lower()
+    if suffix in {".md", ".txt"}:
+        return parse_structured_markdown(path)
+    if source_type == "local_result" and suffix in {".csv", ".tsv"}:
+        return parse_tabular_result_artifact(path, delimiter="\t" if suffix == ".tsv" else ",")
+    if source_type == "local_result" and suffix == ".json":
+        return parse_json_result_artifact(path)
+    return {}
+
+
+def parse_tabular_result_artifact(path: Path, delimiter: str) -> dict[str, str]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter=delimiter)
+        fieldnames = reader.fieldnames or []
+        rows = list(reader)
+
+    lowered = {name.lower(): name for name in fieldnames}
+    metrics = collect_column_values(rows, lowered, ["metric", "metrics"])
+    if not metrics:
+        metrics = infer_metric_columns(fieldnames)
+    baselines = collect_column_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"])
+    benchmarks = collect_column_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"])
+    run_ids = collect_column_values(rows, lowered, ["run_id", "run ids", "run", "trial"])
+
+    structured: dict[str, str] = {
+        "title": path.stem.replace("-", " ").replace("_", " "),
+        "artifact type": "tabular result artifact",
+        "path": str(path),
+        "metric": ", ".join(metrics[:4]) if metrics else infer_metric_from_headers(fieldnames),
+        "scope": ", ".join(benchmarks[:3]) if benchmarks else infer_scope_from_filename(path),
+        "provenance": f"parsed from {path.name}",
+    }
+    if benchmarks:
+        structured["benchmark"] = ", ".join(benchmarks[:3])
+    if baselines:
+        structured["baseline set"] = ", ".join(baselines[:4])
+    if run_ids:
+        structured["run ids"] = ", ".join(run_ids[:5])
+    return structured
+
+
+def parse_json_result_artifact(path: Path) -> dict[str, str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows: list[dict[str, object]]
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        if isinstance(payload.get("results"), list):
+            rows = [item for item in payload["results"] if isinstance(item, dict)]
+        else:
+            rows = [payload]
+    else:
+        rows = []
+
+    keys = sorted({str(key) for row in rows for key in row.keys()})
+    lowered = {name.lower(): name for name in keys}
+    metrics = collect_object_values(rows, lowered, ["metric", "metrics"])
+    if not metrics:
+        metrics = infer_metric_columns(keys)
+    baselines = collect_object_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"])
+    benchmarks = collect_object_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"])
+    run_ids = collect_object_values(rows, lowered, ["run_id", "run ids", "run", "trial"])
+
+    structured: dict[str, str] = {
+        "title": path.stem.replace("-", " ").replace("_", " "),
+        "artifact type": "json result artifact",
+        "path": str(path),
+        "metric": ", ".join(metrics[:4]) if metrics else infer_metric_from_headers(keys),
+        "scope": ", ".join(benchmarks[:3]) if benchmarks else infer_scope_from_filename(path),
+        "provenance": f"parsed from {path.name}",
+    }
+    if benchmarks:
+        structured["benchmark"] = ", ".join(benchmarks[:3])
+    if baselines:
+        structured["baseline set"] = ", ".join(baselines[:4])
+    if run_ids:
+        structured["run ids"] = ", ".join(run_ids[:5])
+    return structured
+
+
+def collect_column_values(
+    rows: list[dict[str, str]],
+    lowered_map: dict[str, str],
+    candidates: list[str],
+) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        column = lowered_map.get(candidate)
+        if not column:
+            continue
+        for row in rows[:50]:
+            value = clean_table_value(row.get(column, ""))
+            if value and value.lower() not in seen:
+                seen.add(value.lower())
+                values.append(value)
+    return values
+
+
+def collect_object_values(
+    rows: list[dict[str, object]],
+    lowered_map: dict[str, str],
+    candidates: list[str],
+) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        column = lowered_map.get(candidate)
+        if not column:
+            continue
+        for row in rows[:50]:
+            value = clean_table_value(str(row.get(column, "")))
+            if value and value.lower() not in seen:
+                seen.add(value.lower())
+                values.append(value)
+    return values
+
+
+def infer_metric_columns(fieldnames: list[str]) -> list[str]:
+    metrics: list[str] = []
+    for name in fieldnames:
+        lowered = name.lower()
+        if any(token in lowered for token in ["success", "accuracy", "precision", "recall", "f1", "pass@", "score", "metric"]):
+            metrics.append(name)
+    return metrics[:4]
+
+
+def infer_metric_from_headers(fieldnames: list[str]) -> str:
+    inferred = infer_metric_columns(fieldnames)
+    if inferred:
+        return ", ".join(inferred[:4])
+    return "an internal metric"
+
+
+def infer_scope_from_filename(path: Path) -> str:
+    label = path.stem.replace("-", " ").replace("_", " ")
+    return label or "the current evaluation scope"
+
+
+def clean_table_value(value: str) -> str:
+    value = re.sub(r"\s+", " ", str(value)).strip()
+    if value in {"", "nan", "null", "none", "None"}:
+        return ""
+    return value
 
 
 def extract_markdown_links(text: str) -> list[tuple[str, str]]:
