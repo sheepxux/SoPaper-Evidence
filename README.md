@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Current version: `v0.9.0`
+Current version: `v1.0.0`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
@@ -45,6 +45,7 @@ Sopaper Evidence is built around a stricter workflow:
 - direct `.csv`, `.tsv`, and `.json` result-artifact ingestion without requiring a handwritten markdown wrapper
 - multi-artifact fusion that aggregates multiple result files into stronger project evidence
 - metric normalization for cleaner evidence statements and lower-friction result onboarding
+- a dedicated fairness review that judges comparative claims on direct evidence, baseline breadth, metric grounding, and scope alignment
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging
 - a repository that can act as the public source of truth
@@ -222,6 +223,7 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 1. build an evidence ledger draft
 2. bootstrap a claim-to-evidence map
 3. triage blocker / major / minor evidence gaps
+4. review comparative fairness before keeping benchmark-win language
 
 Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `supported` when direct result, metric, and baseline context are present.
 
@@ -254,6 +256,7 @@ This command now produces four files:
 - `draft-ledger.md`
 - `draft-claim-map.md`
 - `draft-gap-report.md`
+- `draft-fairness-review.md`
 
 For a topic-first workflow, run:
 

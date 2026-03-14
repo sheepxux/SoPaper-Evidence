@@ -7,7 +7,7 @@ description: Evidence-first research workflow for evidence discovery, source ver
 
 Sopaper Evidence is an evidence-first research skill. Its job is to build a reliable evidence pack before supporting any downstream paper outline, abstract, related work summary, experiment plan, or draft section.
 
-Version: `v0.9.0`
+Version: `v1.0.0`
 
 ## Upstream source
 
@@ -121,6 +121,7 @@ Use bundled `scripts/verify_source_notes.py` when fetched notes should be conser
 Use bundled `scripts/run_evidence_pipeline.py` when the user already has source files, claims, and optional result artifacts and wants one end-to-end draft pack. Result artifacts may be structured markdown, `.csv`, `.tsv`, or `.json`, and multiple result artifacts can be fused into aggregate project evidence.
 Use bundled `scripts/bootstrap_claim_map.py` when the user already has a claims list and a ledger draft and needs a first-pass claim map.
 Use bundled `scripts/triage_evidence_gaps.py` when the user needs a first-pass blocker/major/minor gap report from the current claims and evidence ledger.
+Use bundled `scripts/review_comparison_fairness.py` when the user needs a dedicated fairness check on comparative claims, baseline breadth, metric grounding, and scope alignment.
 Use bundled `scripts/run_topic_evidence_pipeline.py` when the user wants the full topic-driven workflow from theme to search plan, source list, fetched notes, ledger, claim map, and gap report.
 Use bundled `scripts/validate_input_bundle.py` when the user has partially structured inputs and needs a quick schema check before running the pipeline.
 

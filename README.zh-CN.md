@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-当前版本：`v0.9.0`
+当前版本：`v1.0.0`
 
 Sopaper Evidence 是一个以证据优先为核心的研究型 skill，用于证据发现、来源核验与引用落地。它会在任何下游写作或研究规划开始之前，先搜索、验证并组织真实论文、数据集、benchmark、案例和项目工件。
 
@@ -44,6 +44,7 @@ Sopaper Evidence 的工作流更严格：
 - 可直接接入 `.csv / .tsv / .json` 结果工件，不需要先手写 markdown 包装
 - 可融合多份结果工件，自动生成更强的 aggregate `project_evidence`
 - 支持常见 metric 名称规范化，结果证据更可读、更稳定
+- 自带独立 fairness review，会从 direct evidence、baseline breadth、metric grounding、scope alignment 角度判断比较是否公平
 - OpenClaw 端到端示例链路
 - 可用于 GitHub / ClawHub 发布的打包与文案
 
@@ -177,6 +178,7 @@ flowchart TD
 1. 生成 evidence ledger 草稿
 2. 初始化 claim-to-evidence map
 3. 生成 blocker / major / minor 的 evidence gap report
+4. 在保留 comparative 语言前先做 fairness review
 
 结构化 source notes 和 result artifacts 会显著减少 placeholder-only 草稿；当本地 result artifact 包含直接结果、metric 和 baseline 上下文时，comparative claim 可以从 `unsupported` 提升到更高置信度。
 
