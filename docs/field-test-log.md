@@ -33,6 +33,8 @@
 - The OpenClaw topic-first rerun now produces `reviewed-primary` notes and the ledger uses those reviewed summaries directly, which is a cleaner research-level evidence surface than page metadata alone.
 - Direct CSV and JSON result artifacts now validate and ingest without requiring a handwritten markdown wrapper.
 - The OpenClaw topic-first rerun with `openclaw-results.csv` and `openclaw-results.json` now generates `project_evidence` entries that preserve metric, baseline, and scope signals directly from the raw result files.
+- Multi-artifact ingestion now creates an additional aggregated result-evidence entry, which gives downstream claim mapping a stronger project-level view when several result files are supplied together.
+- Metric strings such as `success_rate` are now normalized into cleaner evidence text like `success rate` during ingestion.
 
 ## Current conclusion
 

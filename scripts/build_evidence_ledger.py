@@ -80,11 +80,14 @@ def main() -> int:
 
 def collect_sources(paths: Iterable[Path]) -> list[SourceItem]:
     items_by_key: dict[str, SourceItem] = {}
+    local_result_sources: list[SourceItem] = []
 
     for path in paths:
         if path.is_file():
             local_source = build_local_source(path)
             add_source(items_by_key, local_source)
+            if local_source.source_type == "local_result":
+                local_result_sources.append(local_source)
 
             if path.suffix.lower() not in {".md", ".txt"}:
                 continue
@@ -97,6 +100,9 @@ def collect_sources(paths: Iterable[Path]) -> list[SourceItem]:
                     items_by_key,
                     build_external_source(guess_title_from_url(locator), locator, path.name),
                 )
+
+    if len(local_result_sources) >= 2:
+        add_source(items_by_key, build_aggregate_result_source(local_result_sources))
 
     return list(items_by_key.values())
 
@@ -193,11 +199,17 @@ def parse_tabular_result_artifact(path: Path, delimiter: str) -> dict[str, str]:
         rows = list(reader)
 
     lowered = {name.lower(): name for name in fieldnames}
-    metrics = collect_column_values(rows, lowered, ["metric", "metrics"])
+    metrics = normalize_values(collect_column_values(rows, lowered, ["metric", "metrics"]), kind="metric")
     if not metrics:
-        metrics = infer_metric_columns(fieldnames)
-    baselines = collect_column_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"])
-    benchmarks = collect_column_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"])
+        metrics = normalize_values(infer_metric_columns(fieldnames), kind="metric")
+    baselines = normalize_values(
+        collect_column_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"]),
+        kind="baseline",
+    )
+    benchmarks = normalize_values(
+        collect_column_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"]),
+        kind="scope",
+    )
     run_ids = collect_column_values(rows, lowered, ["run_id", "run ids", "run", "trial"])
 
     structured: dict[str, str] = {
@@ -232,11 +244,17 @@ def parse_json_result_artifact(path: Path) -> dict[str, str]:
 
     keys = sorted({str(key) for row in rows for key in row.keys()})
     lowered = {name.lower(): name for name in keys}
-    metrics = collect_object_values(rows, lowered, ["metric", "metrics"])
+    metrics = normalize_values(collect_object_values(rows, lowered, ["metric", "metrics"]), kind="metric")
     if not metrics:
-        metrics = infer_metric_columns(keys)
-    baselines = collect_object_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"])
-    benchmarks = collect_object_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"])
+        metrics = normalize_values(infer_metric_columns(keys), kind="metric")
+    baselines = normalize_values(
+        collect_object_values(rows, lowered, ["baseline", "baselines", "model", "method", "system"]),
+        kind="baseline",
+    )
+    benchmarks = normalize_values(
+        collect_object_values(rows, lowered, ["benchmark", "dataset", "task", "suite", "split"]),
+        kind="scope",
+    )
     run_ids = collect_object_values(rows, lowered, ["run_id", "run ids", "run", "trial"])
 
     structured: dict[str, str] = {
@@ -320,6 +338,95 @@ def clean_table_value(value: str) -> str:
     if value in {"", "nan", "null", "none", "None"}:
         return ""
     return value
+
+
+def normalize_values(values: list[str], *, kind: str) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        item = normalize_value(value, kind=kind)
+        if item and item.lower() not in seen:
+            seen.add(item.lower())
+            normalized.append(item)
+    return normalized
+
+
+def normalize_value(value: str, *, kind: str) -> str:
+    text = clean_table_value(value).replace("_", " ").replace("-", " ")
+    collapsed = re.sub(r"\s+", " ", text).strip()
+    lowered = collapsed.lower()
+    if not lowered:
+        return ""
+    if kind == "metric":
+        aliases = {
+            "success rate": "success rate",
+            "success_rate": "success rate",
+            "accuracy": "accuracy",
+            "precision": "precision",
+            "recall": "recall",
+            "f1": "F1",
+            "pass@k": "pass@k",
+            "pass k": "pass@k",
+            "score": "score",
+        }
+        return aliases.get(lowered, collapsed)
+    return collapsed
+
+
+def build_aggregate_result_source(sources: list[SourceItem]) -> SourceItem:
+    metrics = collect_field_fragments(sources, marker="Candidate metric fact: This artifact defines or reports ")
+    baselines = collect_field_fragments(sources, marker="Candidate baseline fact: This artifact compares against ")
+    scopes = collect_scope_fragments(sources)
+    metric_text = ", ".join(metrics[:4]) if metrics else "internal metrics"
+    scope_text = ", ".join(scopes[:4]) if scopes else "current evaluation scopes"
+    baseline_text = ", ".join(baselines[:5]) if baselines else "task-aligned baselines"
+    statement = (
+        f"Aggregated result artifacts cover {metric_text} across {scope_text}. "
+        f"Candidate baseline fact: Combined artifacts compare against {baseline_text}."
+    )
+    return SourceItem(
+        title="Aggregated Result Artifacts",
+        locator=f"aggregate://local-results/{len(sources)}",
+        source_type="local_result",
+        classification="project_evidence",
+        origin="aggregated-local-results",
+        statement=statement,
+        relevance=f"This aggregate project evidence summarizes {len(sources)} local result artifacts across {scope_text}.",
+        limitations="Aggregate result evidence still requires manual checks for metric alignment, split compatibility, and fair baseline matching.",
+    )
+
+
+def collect_field_fragments(sources: list[SourceItem], *, marker: str) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for source in sources:
+        for sentence in source.statement.split("."):
+            cleaned = sentence.strip()
+            if marker.lower() in cleaned.lower():
+                raw_value = cleaned.split(marker, 1)[-1].strip().rstrip(".")
+                for part in [piece.strip() for piece in raw_value.split(",") if piece.strip()]:
+                    value = normalize_value(part, kind="metric" if "metric" in marker.lower() else "baseline")
+                    if value and value.lower() not in seen:
+                        seen.add(value.lower())
+                        values.append(value)
+    return values
+
+
+def collect_scope_fragments(sources: list[SourceItem]) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    pattern = re.compile(r"tracks .*? for (.+?)(?: against|$)", re.IGNORECASE)
+    for source in sources:
+        match = pattern.search(source.statement)
+        if not match:
+            continue
+        raw_value = match.group(1).strip()
+        for part in [piece.strip() for piece in raw_value.split(",") if piece.strip()]:
+            value = normalize_value(part, kind="scope")
+            if value and value.lower() not in seen:
+                seen.add(value.lower())
+                values.append(value)
+    return values
 
 
 def extract_markdown_links(text: str) -> list[tuple[str, str]]:

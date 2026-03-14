@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-当前版本：`v0.8.0`
+当前版本：`v0.9.0`
 
 Sopaper Evidence 是一个以证据优先为核心的研究型 skill，用于证据发现、来源核验与引用落地。它会在任何下游写作或研究规划开始之前，先搜索、验证并组织真实论文、数据集、benchmark、案例和项目工件。
 
@@ -42,6 +42,8 @@ Sopaper Evidence 的工作流更严格：
 - 结构化 result artifact 接入，可用于 comparative claim 判断
 - reviewed primary-source summaries，可把外部来源提升到比页面级元信息更强的研究级摘要
 - 可直接接入 `.csv / .tsv / .json` 结果工件，不需要先手写 markdown 包装
+- 可融合多份结果工件，自动生成更强的 aggregate `project_evidence`
+- 支持常见 metric 名称规范化，结果证据更可读、更稳定
 - OpenClaw 端到端示例链路
 - 可用于 GitHub / ClawHub 发布的打包与文案
 
@@ -191,6 +193,8 @@ flowchart TD
 如果还提供了结构化 result artifacts，同一条 pipeline 也能把它们并入 `project_evidence`，用于 comparative-result gating。
 
 现在这条 result-artifact 链路已经不只支持 markdown 模板，也支持直接接入 `.csv / .tsv / .json` 结果文件，并自动抽 metric、baseline 和 scope 信号。
+
+当同时提供多份结果工件时，ledger 还会自动生成一条聚合后的 project evidence，便于下游 claim map 和 gap triage 使用更强的项目级证据面。
 
 查看完整命令流程：
 - [automation-workflow.md](/Users/xu/Desktop/Sopaper/docs/automation-workflow.md)
