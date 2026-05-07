@@ -11,6 +11,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote_plus, unquote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
+from url_safety import assert_public_http_url, is_safe_public_http_url
+
 
 QUERY_LINE_RE = re.compile(r"^- Query:\s*(.+)\s*$")
 RESULT_LINK_RE = re.compile(
@@ -262,6 +264,7 @@ def search_openalex(query: str) -> list[dict[str, str]]:
             "select": "display_name,primary_location,locations,ids",
         }
     )
+    assert_public_http_url(url)
     request = Request(
         url,
         headers={
@@ -294,7 +297,7 @@ def choose_openalex_url(item: dict) -> str | None:
         primary.get("landing_page_url"),
         primary.get("pdf_url"),
     ]:
-        if candidate and candidate.startswith("http"):
+        if candidate and is_safe_public_http_url(candidate):
             return candidate
 
     for location in item.get("locations", []):
@@ -302,13 +305,13 @@ def choose_openalex_url(item: dict) -> str | None:
             location.get("landing_page_url"),
             location.get("pdf_url"),
         ]:
-            if candidate and candidate.startswith("http"):
+            if candidate and is_safe_public_http_url(candidate):
                 return candidate
 
     ids = item.get("ids") or {}
     for key in ["doi", "arxiv", "openalex"]:
         candidate = ids.get(key)
-        if candidate and candidate.startswith("http"):
+        if candidate and is_safe_public_http_url(candidate):
             return candidate
     return None
 
@@ -322,6 +325,7 @@ def search_github_repositories(query: str) -> list[dict[str, str]]:
             "per_page": 5,
         }
     )
+    assert_public_http_url(url)
     request = Request(
         url,
         headers={
@@ -343,13 +347,14 @@ def search_github_repositories(query: str) -> list[dict[str, str]]:
         description = clean_text(item.get("description", ""))
         href = item.get("html_url", "")
         combined = title if not description else f"{title}: {description}"
-        if combined and href.startswith("http"):
+        if combined and is_safe_public_http_url(href):
             results.append({"title": combined, "url": href})
     return results
 
 
 def search_duckduckgo(query: str) -> list[dict[str, str]]:
     url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
+    assert_public_http_url(url)
     request = Request(
         url,
         headers={
@@ -371,7 +376,7 @@ def search_duckduckgo(query: str) -> list[dict[str, str]]:
     for match in RESULT_LINK_RE.finditer(raw):
         href = extract_result_url(match.group("href"))
         title = clean_text(re.sub(r"<[^>]+>", " ", match.group("title")))
-        if title and href and href.startswith("http"):
+        if title and href and is_safe_public_http_url(href):
             results.append({"title": title, "url": href})
     return results
 
@@ -418,6 +423,8 @@ def canonicalize_url(url: str) -> str:
 
 
 def should_skip_result(url: str) -> bool:
+    if not is_safe_public_http_url(url):
+        return True
     parsed = urlparse(url)
     host = parsed.netloc.lower()
     return (

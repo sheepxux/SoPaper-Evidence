@@ -7,7 +7,7 @@ description: Evidence-first research workflow for evidence discovery, source ver
 
 Sopaper Evidence is an evidence-first research skill. Its job is to build a reliable evidence pack before supporting any downstream paper outline, abstract, related work summary, experiment plan, or draft section.
 
-Version: `v1.1.0`
+Version: `v1.1.1`
 
 ## Upstream source
 
@@ -27,6 +27,7 @@ This published skill bundle includes the helper scripts it references under `scr
 
 - Do not fabricate papers, authors, venues, dates, citations, datasets, benchmarks, experiments, or numerical results
 - Prefer primary sources over summaries, reposts, or blog interpretations
+- Reject non-public URLs before fetching external pages; do not fetch localhost, private-network, link-local, non-HTTP(S), or credential-bearing URLs
 - Separate verified facts from inference and open questions
 - If evidence is missing, say it is missing and recommend what to collect next
 - Do not state that the user's method outperforms baselines unless there is explicit evidence

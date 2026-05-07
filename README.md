@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Current version: `v1.1.0`
+Current version: `v1.1.1`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
@@ -46,6 +46,7 @@ Sopaper Evidence is built around a stricter workflow:
 - multi-artifact fusion that aggregates multiple result files into stronger project evidence
 - experiment-directory ingestion that recursively discovers raw result files and feeds them into the evidence pipeline
 - metric normalization for cleaner evidence statements and lower-friction result onboarding
+- public-URL safety checks that reject localhost, private-network, link-local, and credential-bearing URLs before external fetches
 - a dedicated fairness review that judges comparative claims on direct evidence, baseline breadth, metric grounding, and scope alignment
 - an OpenClaw end-to-end example set
 - marketplace-ready copy and packaging

@@ -10,8 +10,10 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
+
+from url_safety import assert_public_http_url, is_safe_public_http_url
 
 
 MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^)]+)\)")
@@ -152,12 +154,15 @@ def collect_urls(values: list[str]) -> list[str]:
 
 def add_url(found: list[str], seen: set[str], url: str) -> None:
     cleaned = url.strip().rstrip(").,")
+    if not is_safe_public_http_url(cleaned):
+        return
     if cleaned not in seen:
         seen.add(cleaned)
         found.append(cleaned)
 
 
 def fetch_note(url: str, *, timeout: int) -> dict[str, str]:
+    assert_public_http_url(url)
     request = Request(
         url,
         headers={
@@ -170,7 +175,8 @@ def fetch_note(url: str, *, timeout: int) -> dict[str, str]:
             raw = response.read().decode("utf-8", errors="replace")
     except HTTPError as exc:
         if exc.code in {301, 302, 303, 307, 308} and exc.headers.get("Location"):
-            redirected = exc.headers["Location"]
+            redirected = urljoin(url, exc.headers["Location"])
+            assert_public_http_url(redirected)
             return fetch_note(redirected, timeout=timeout)
         raise
 
