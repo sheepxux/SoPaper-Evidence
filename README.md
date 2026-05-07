@@ -4,7 +4,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Current version: `v1.0.0`
+Current version: `v1.1.0`
 
 Sopaper Evidence is an evidence-first research skill for evidence discovery, source verification, and citation grounding. It searches, verifies, and organizes real papers, datasets, benchmarks, case studies, and project artifacts before any downstream research writing or planning work begins.
 
@@ -44,6 +44,7 @@ Sopaper Evidence is built around a stricter workflow:
 - reviewed primary-source summaries that lift verified notes beyond page-level metadata
 - direct `.csv`, `.tsv`, and `.json` result-artifact ingestion without requiring a handwritten markdown wrapper
 - multi-artifact fusion that aggregates multiple result files into stronger project evidence
+- experiment-directory ingestion that recursively discovers raw result files and feeds them into the evidence pipeline
 - metric normalization for cleaner evidence statements and lower-friction result onboarding
 - a dedicated fairness review that judges comparative claims on direct evidence, baseline breadth, metric grounding, and scope alignment
 - an OpenClaw end-to-end example set
@@ -150,6 +151,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [result-artifact-template.md](/Users/xu/Desktop/Sopaper/sopaper-evidence/assets/result-artifact-template.md): template for structured internal result artifacts
 - [openclaw-results.csv](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-results.csv): example tabular result artifact
 - [openclaw-results.json](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-results.json): example JSON result artifact
+- [openclaw-results-dir](/Users/xu/Desktop/Sopaper/sopaper-evidence/examples/openclaw-results-dir): example result directory for recursive result-artifact discovery
 - [build_evidence_ledger.py](/Users/xu/Desktop/Sopaper/scripts/build_evidence_ledger.py): generate a first-pass evidence ledger from markdown notes and source lists
 - [generate_search_plan.py](/Users/xu/Desktop/Sopaper/scripts/generate_search_plan.py): turn a topic into a first-pass search plan
 - [generate_topic_claims.py](/Users/xu/Desktop/Sopaper/scripts/generate_topic_claims.py): turn a topic into a cautious structured claims draft
@@ -159,7 +161,7 @@ Build an evidence pack for OpenClaw. Search real prior work, benchmarks, dataset
 - [bootstrap_claim_map.py](/Users/xu/Desktop/Sopaper/scripts/bootstrap_claim_map.py): generate a first-pass claim-to-evidence map from claims and a ledger draft
 - [triage_evidence_gaps.py](/Users/xu/Desktop/Sopaper/scripts/triage_evidence_gaps.py): generate a first-pass blocker/major/minor gap report from claims and a ledger draft
 - [run_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_evidence_pipeline.py): run the helper pipeline end-to-end and write outputs to one directory
-- [run_topic_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_topic_evidence_pipeline.py): run the topic-driven pipeline from theme to search plan, source list, fetched notes, ledger, claim map, and gap report
+- [run_topic_evidence_pipeline.py](/Users/xu/Desktop/Sopaper/scripts/run_topic_evidence_pipeline.py): run the topic-driven pipeline from theme to search plan, source list, fetched notes, result directory discovery, ledger, claim map, gap report, and fairness review
 - [validate_input_bundle.py](/Users/xu/Desktop/Sopaper/scripts/validate_input_bundle.py): validate structured inputs before running the pipeline
 
 The published skill bundle now includes the helper scripts under `sopaper-evidence/scripts/`, so the ClawHub package is self-contained and matches the runtime instructions in `SKILL.md`.
@@ -227,9 +229,11 @@ The helper scripts can now bootstrap the first three mechanical steps of the wor
 
 Structured source notes and result artifacts now seed stronger draft statements, and reviewed local result artifacts can lift comparative claims from `unsupported` to `supported` when direct result, metric, and baseline context are present.
 
-The result-artifact path no longer depends on markdown only. The pipeline can now ingest `.csv`, `.tsv`, and `.json` result files directly, infer metric / baseline / scope signals, normalize common metric names, and convert them into `project_evidence`.
+The result-artifact path no longer depends on markdown only. The pipeline can ingest `.csv`, `.tsv`, and `.json` result files directly, infer metric / baseline / scope signals, normalize common metric names, and convert them into `project_evidence`.
 
 When more than one result artifact is provided, the ledger now adds an aggregated result-evidence entry so downstream claim mapping has a stronger project-level evidence surface.
+
+For real experiment folders, use `--result-dir` to recursively discover raw `.csv`, `.tsv`, and `.json` result artifacts without listing every file manually.
 
 When source inputs still contain raw URLs, the external fetch helper can convert them into structured source-note drafts with page metadata and candidate facts before ledger construction. A conservative verification pass can then upgrade clearly reviewable notes into page-level facts or reviewed primary-source summaries before they enter the ledger.
 
@@ -282,6 +286,15 @@ python3 scripts/run_topic_evidence_pipeline.py \
   "OpenClaw long-horizon manipulation benchmark evaluation" \
   --result-artifacts sopaper-evidence/examples/openclaw-results.csv \
   --output-dir output/topic-openclaw-csv
+```
+
+Topic-first with a result directory:
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "OpenClaw long-horizon manipulation benchmark evaluation" \
+  --result-dir sopaper-evidence/examples/openclaw-results-dir \
+  --output-dir output/topic-openclaw-results-dir
 ```
 
 Example:

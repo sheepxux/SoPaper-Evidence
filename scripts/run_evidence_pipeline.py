@@ -30,7 +30,13 @@ def parse_args() -> argparse.Namespace:
         "--result-artifacts",
         nargs="*",
         default=[],
-        help="Structured result-artifact markdown files to ingest alongside source files.",
+        help="Structured result-artifact files to ingest alongside source files.",
+    )
+    parser.add_argument(
+        "--result-dir",
+        nargs="*",
+        default=[],
+        help="Directories to scan recursively for .csv, .tsv, and .json result artifacts.",
     )
     parser.add_argument(
         "--fetch-external",
@@ -59,12 +65,16 @@ def main() -> int:
     args = parse_args()
     root = Path(__file__).resolve().parent.parent
     sources = [Path(value).expanduser().resolve() for value in args.sources]
-    result_artifacts = [Path(value).expanduser().resolve() for value in args.result_artifacts]
+    explicit_result_artifacts = [Path(value).expanduser().resolve() for value in args.result_artifacts]
+    result_dirs = [Path(value).expanduser().resolve() for value in args.result_dir]
+    discovered_result_artifacts = discover_result_artifacts(result_dirs)
+    result_artifacts = dedupe_paths([*explicit_result_artifacts, *discovered_result_artifacts])
     claims = Path(args.claims).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    missing = [str(path) for path in sources + result_artifacts + [claims] if not path.exists()]
+    missing = [str(path) for path in sources + explicit_result_artifacts + [claims] if not path.exists()]
+    missing.extend(str(path) for path in result_dirs if not path.exists() or not path.is_dir())
     if missing:
         for item in missing:
             print(f"Missing input: {item}", file=sys.stderr)
@@ -116,6 +126,8 @@ def main() -> int:
         fairness_report_path=fairness_report_path,
         generated_notes=generated_notes,
         result_artifacts=result_artifacts,
+        result_dirs=result_dirs,
+        discovered_result_artifacts=discovered_result_artifacts,
     )
 
     print("Pipeline complete.")
@@ -168,6 +180,29 @@ def validate_result_artifacts(root: Path, artifacts: list[Path]) -> None:
         )
 
 
+def discover_result_artifacts(directories: list[Path]) -> list[Path]:
+    allowed_suffixes = {".csv", ".tsv", ".json"}
+    artifacts: list[Path] = []
+    for directory in directories:
+        if not directory.exists() or not directory.is_dir():
+            continue
+        for path in sorted(directory.rglob("*")):
+            if path.is_file() and path.suffix.lower() in allowed_suffixes:
+                artifacts.append(path.resolve())
+    return artifacts
+
+
+def dedupe_paths(paths: list[Path]) -> list[Path]:
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = str(path.resolve())
+        if key not in seen:
+            seen.add(key)
+            deduped.append(path.resolve())
+    return deduped
+
+
 def write_summary(
     *,
     summary_path: Path,
@@ -179,6 +214,8 @@ def write_summary(
     fairness_report_path: Path,
     generated_notes: list[Path],
     result_artifacts: list[Path],
+    result_dirs: list[Path],
+    discovered_result_artifacts: list[Path],
 ) -> None:
     lines = [
         "# Evidence Pipeline Summary",
@@ -192,6 +229,28 @@ def write_summary(
 
     for source in sources:
         lines.append(f"- Source file: `{source}`")
+
+    if result_dirs:
+        lines.extend(
+            [
+                "",
+                "## Result directories",
+                "",
+            ]
+        )
+        for directory in result_dirs:
+            lines.append(f"- Result directory: `{directory}`")
+
+    if discovered_result_artifacts:
+        lines.extend(
+            [
+                "",
+                "## Discovered result artifacts",
+                "",
+            ]
+        )
+        for artifact in discovered_result_artifacts:
+            lines.append(f"- Discovered artifact: `{artifact}`")
 
     if result_artifacts:
         lines.extend(

@@ -8,6 +8,7 @@ If the inputs still contain raw URLs, fetch structured source-note drafts before
 
 - a markdown file with source links or notes
 - a markdown file with candidate research claims
+- optional structured result artifacts or a results directory containing `.csv`, `.tsv`, and `.json` files
 
 ## Pipeline
 
@@ -26,6 +27,17 @@ Output:
 - a generated structured claims draft
 - fetched source-note drafts
 - the downstream ledger / claim map / gap report outputs
+
+When local experiment files are available, add `--result-dir`:
+
+```bash
+python3 scripts/run_topic_evidence_pipeline.py \
+  "OpenClaw long-horizon manipulation benchmark evaluation" \
+  --result-dir sopaper-evidence/examples/openclaw-results-dir \
+  --output-dir output/topic-openclaw-results-dir
+```
+
+The result directory is scanned recursively for `.csv`, `.tsv`, and `.json` files before the downstream pipeline runs.
 
 ### 0. Fetch external source notes from URLs
 
@@ -66,6 +78,7 @@ Output:
 
 - a first-pass ledger with `E01`, `E02`, and other evidence ids
 - structured source notes and result artifacts can seed non-placeholder statements
+- recursively discovered result files can be fused into aggregate `project_evidence`
 
 ### 2. Bootstrap a claim map draft
 

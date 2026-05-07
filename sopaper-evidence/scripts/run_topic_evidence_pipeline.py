@@ -31,7 +31,13 @@ def parse_args() -> argparse.Namespace:
         "--result-artifacts",
         nargs="*",
         default=[],
-        help="Structured result-artifact markdown files to ingest into the downstream evidence pipeline.",
+        help="Structured result-artifact files to ingest into the downstream evidence pipeline.",
+    )
+    parser.add_argument(
+        "--result-dir",
+        nargs="*",
+        default=[],
+        help="Directories to scan recursively for .csv, .tsv, and .json result artifacts.",
     )
     return parser.parse_args()
 
@@ -64,6 +70,11 @@ def main() -> int:
             *(
                 ["--result-artifacts", *[str(Path(value).expanduser().resolve()) for value in args.result_artifacts]]
                 if args.result_artifacts
+                else []
+            ),
+            *(
+                ["--result-dir", *[str(Path(value).expanduser().resolve()) for value in args.result_dir]]
+                if args.result_dir
                 else []
             ),
             "--output-dir",

@@ -27,6 +27,7 @@ Canonical upstream source: [SoPaper-Evidence](https://github.com/sheepxux/SoPape
 - structured result-artifact ingestion for stronger comparative claim gating
 - direct csv/json result-artifact ingestion for lower-friction project evidence onboarding
 - multi-artifact fusion and metric normalization for stronger experiment evidence packaging
+- experiment-directory ingestion for recursive discovery of raw result files
 - dedicated fairness review for comparative claims
 - conservative writing support
 - useful for OpenClaw-style embodied AI and robotics projects
